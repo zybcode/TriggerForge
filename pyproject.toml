@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "triggerforge"
+dynamic = ["version"]
+description = "A high-performance directory monitor and dynamic plugin execution engine."
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["file-watcher", "plugin-engine", "scheduler", "automation"]
+authors = [
+    { name = "zybcode" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Monitoring",
+]
+
+# 核心运行时依赖（与 requirements.txt 保持完全同步）
+dependencies = [
+    "watchdog>=4.0.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0.0",
+]
+
+# 命令行工具全局入口注册
+[project.scripts]
+triggerforge = "triggerforge.main:main"
+
+# Hatch 构建与版本管理配置
+[tool.hatch.version]
+path = "src/triggerforge/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/triggerforge"]
+
+# Hatch 开发与测试环境管理
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "mypy",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+cov = "pytest --cov=src/triggerforge --cov-report=term-missing {args:tests}"
+lint = ["black --check src tests", "mypy src"]
+format = "black src tests"
+[tool.pytest.ini_options]
+pythonpath = ["src"]

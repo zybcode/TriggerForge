@@ -1,0 +1,70 @@
+"""
+Minimal CLI entrypoint for tests.
+
+Supports --help, --version, --config and --dry-run (schema validation).
+"""
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+import yaml
+
+from triggerforge.core.schema import TriggerForgeConfigSchema
+from triggerforge.core.looper import run_looper
+
+VERSION = "0.1.0"
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(prog="triggerforge")
+    parser.add_argument("--version", action="store_true", help="Print version and exit")
+    parser.add_argument("--config", type=str, help="Path to configuration YAML file")
+    parser.add_argument("--dry-run", action="store_true", help="Validate config and exit")
+    return parser.parse_args(argv)
+
+
+def run_cli_logic(args) -> int:
+    if getattr(args, "version", False):
+        print(VERSION)
+        return 0
+
+    config_path = getattr(args, "config", None)
+    if not config_path:
+        raise FileNotFoundError("Missing required --config path")
+
+    config_file = Path(config_path)
+    if not config_file.exists():
+        print(f"error: config file not found: {config_file}", file=sys.stderr)
+        return 2
+
+    try:
+        with open(config_file, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    except Exception as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    try:
+        config_schema = TriggerForgeConfigSchema(**data)
+    except Exception as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    if getattr(args, "dry_run", False):
+        print("Dry run completed")
+        return 0
+
+    print("Starting TriggerForge Looper...")
+    run_looper(config_schema.model_dump())
+    return 0
+
+
+def main(argv=None) -> int:
+    args = parse_args(argv)
+    return run_cli_logic(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

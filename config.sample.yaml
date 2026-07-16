@@ -1,0 +1,40 @@
+# =================================================================
+# TriggerForge 生产级配置文件示例 (Production Configuration Blueprint)
+# =================================================================
+
+# 监控目录策略列表（支持配置多个独立的监控目录）
+watch_folders:
+  - # 1. 引擎实施事件监听的源目标目录路径
+    path: "./storage/watch_folder"  
+    
+    # 2. 插件成功执行完毕后，源文件将被自动移动至该归档目录
+    success_path: "./storage/success_folder"
+    
+    # 3. 插件执行失败或超时熔断后，源文件将被自动移动至该故障隔离目录
+    error_path: "./storage/error_folder"
+    
+    # 4. 该监控目录分配的独立线程池大小，用于高并发分发事件
+    concurrency: 4
+    
+    # 5. 该目录事件触发后，按顺序串行执行的插件策略流水线
+    strategies:
+      # 策略 1：调用现代压缩插件，限时 15 秒熔断
+      - plugin_name: "compress_plugin"
+        plugin_version: "1.0.0"
+        # 15秒硬超时防锁死
+        timeout: 15                     
+        
+        params:
+          level: "high"
+          archive_type: "tar.gz"
+
+      # 策略 2：调用历史遗留数据解析插件，挂载独立的虚拟环境运行
+      - plugin_name: "legacy_parser_plugin"
+        plugin_version: "0.8.2"
+        # 核心亮点：打破依赖冲突，子进程动态切换至老旧的独立隔离环境运行
+        python_path: "/opt/venv/legacy_env/bin/python" 
+        # 30秒超时熔断  
+        timeout: 30                     
+        params:
+          legacy_mode: true
+          encoding: "gbk"
