@@ -1,7 +1,7 @@
 """
 TriggerForge - Event Buffer Queue Module
 Author: zybcode
-Description: Thread-safe event buffer queue mediating file events between 
+Description: Thread-safe event buffer queue mediating file events between
              the Sentry monitors and the downstream ForgeCore executors.
 """
 
@@ -15,6 +15,7 @@ class EventBufferQueue:
     线程安全的事件缓冲队列。
     作为 Sentry（事件产生端）与 ForgeCore（事件消费端）之间的缓冲区。
     """
+
     def __init__(self, maxsize: int = 0):
         """
         Args:
@@ -27,11 +28,11 @@ class EventBufferQueue:
     def put(self, file_path: Path, timeout: Optional[float] = None) -> bool:
         """
         向队列中安全地投递一个待处理的文件路径。
-        
+
         Args:
             file_path: 触发事件的目标文件绝对路径
             timeout: 可选的超时时间（秒）。如果队列满了，在超时时间内阻塞等待
-            
+
         Returns:
             bool: 投递成功返回 True，超时或异常导致失败导致失败
         """
@@ -45,10 +46,10 @@ class EventBufferQueue:
     def get(self, timeout: Optional[float] = None) -> Optional[Path]:
         """
         从队列中消费获取一个文件路径。如果队列为空，将进入阻塞状态。
-        
+
         Args:
             timeout: 可选的阻塞超时时间（秒）。若为 None 且无数据，则无限期阻塞
-            
+
         Returns:
             Optional[Path]: 返回获取到的文件 Path 对象，若超时未获取到则返回 None
         """

@@ -16,10 +16,10 @@ def test_archive_success_basic(temp_workspace, dummy_file):
     """
     archiver = ClerkArchiver()
     success_dir = temp_workspace / "success"
-    
+
     # 执行归档
     final_path = archiver.archive_success(dummy_file, success_dir)
-    
+
     assert final_path.exists()
     assert final_path.parent == success_dir
     assert not dummy_file.exists()
@@ -33,9 +33,9 @@ def test_archive_error_basic(temp_workspace, dummy_file):
     """
     archiver = ClerkArchiver()
     error_dir = temp_workspace / "error"
-    
+
     final_path = archiver.archive_error(dummy_file, error_dir)
-    
+
     assert final_path.exists()
     assert final_path.parent == error_dir
     assert not dummy_file.exists()
@@ -48,12 +48,12 @@ def test_directory_self_healing(temp_workspace, dummy_file):
     """
     archiver = ClerkArchiver()
     deep_success_dir = temp_workspace / "nested" / "deep" / "success_zone"
-    
+
     # 确保开始前该深层目录绝对不存在
     assert not deep_success_dir.exists()
-    
+
     final_path = archiver.archive_success(dummy_file, deep_success_dir)
-    
+
     assert deep_success_dir.exists()
     assert final_path.exists()
     assert final_path.parent == deep_success_dir
@@ -67,14 +67,14 @@ def test_duplicate_avoidance_with_timestamp(temp_workspace, dummy_file):
     archiver = ClerkArchiver()
     success_dir = temp_workspace / "success"
     success_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # 1. 在目标目录下提前制造一个同名的阻碍文件
     obstacle_path = success_dir / dummy_file.name
     obstacle_path.write_text("existing old file", encoding="utf-8")
-    
+
     # 2. 执行归档
     final_path = archiver.archive_success(dummy_file, success_dir)
-    
+
     # 3. 断言校验
     assert not dummy_file.exists()
     assert obstacle_path.exists()
@@ -92,8 +92,8 @@ def test_archive_source_file_not_found(temp_workspace):
     archiver = ClerkArchiver()
     non_existent_file = temp_workspace / "ghost.txt"
     success_dir = temp_workspace / "success"
-    
+
     with pytest.raises(FileNotFoundError) as exc_info:
         archiver.archive_success(non_existent_file, success_dir)
-        
+
     assert "Source file not found" in str(exc_info.value)

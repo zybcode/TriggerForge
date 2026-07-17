@@ -2,9 +2,10 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+
 class BasePlugin(ABC):
     """所有插件必须继承的抽象基类"""
-    
+
     @abstractmethod
     def execute(self, file_path: Path) -> bool:
         """

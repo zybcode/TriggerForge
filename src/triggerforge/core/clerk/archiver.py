@@ -21,27 +21,31 @@ class ClerkArchiver:
     def __init__(self):
         pass
 
-    def archive_success(self, file_path: Union[str, Path], success_path: Union[str, Path]) -> Path:
+    def archive_success(
+        self, file_path: Union[str, Path], success_path: Union[str, Path]
+    ) -> Path:
         """
         将文件归档至成功归档目录[cite: 1, 2]。
-        
+
         Args:
             file_path: 待归档的源文件路径。
             success_path: 目标成功归档目录。
-            
+
         Returns:
             Path: 归档后的最终目标文件路径。
         """
         return self._safe_move(Path(file_path), Path(success_path))
 
-    def archive_error(self, file_path: Union[str, Path], error_path: Union[str, Path]) -> Path:
+    def archive_error(
+        self, file_path: Union[str, Path], error_path: Union[str, Path]
+    ) -> Path:
         """
         将文件移动至失败/故障隔离目录（Quarantine）[cite: 1, 2]。
-        
+
         Args:
             file_path: 待隔离的源文件路径。
             error_path: 目标故障隔离目录。
-            
+
         Returns:
             Path: 隔离后的最终目标文件路径。
         """

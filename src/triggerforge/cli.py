@@ -3,13 +3,14 @@ Minimal CLI entrypoint for tests.
 
 Supports --help, --version, --config and --dry-run (schema validation).
 """
+
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
 
-import yaml
+import yaml  # type: ignore
 
 from triggerforge.core.schema import TriggerForgeConfigSchema
 from triggerforge.core.looper import run_looper
@@ -21,7 +22,9 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(prog="triggerforge")
     parser.add_argument("--version", action="store_true", help="Print version and exit")
     parser.add_argument("--config", type=str, help="Path to configuration YAML file")
-    parser.add_argument("--dry-run", action="store_true", help="Validate config and exit")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Validate config and exit"
+    )
     return parser.parse_args(argv)
 
 

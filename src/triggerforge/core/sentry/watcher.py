@@ -8,7 +8,7 @@ Description: High-performance directory monitor that tracks filesystem events,
 import os
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Callable
+from typing import Dict, Any, List, Callable, Optional
 from queue import Queue
 from threading import Thread, Timer
 
@@ -22,6 +22,7 @@ class FileWriteDebouncer:
     文件写入防抖过滤器。
     确保文件已完全写入磁盘（文件大小在指定时间内不再变化），避免下游插件读取到半写入状态的文件。
     """
+
     def __init__(self, delay_seconds: float = 1.0, check_interval: float = 0.2):
         self.delay_seconds = delay_seconds
         self.check_interval = check_interval
@@ -32,11 +33,11 @@ class FileWriteDebouncer:
         """
         if not file_path.exists():
             return False
-            
+
         try:
             last_size = file_path.stat().st_size
             time.sleep(self.check_interval)
-            
+
             elapsed = self.check_interval
             while elapsed < self.delay_seconds:
                 current_size = file_path.stat().st_size
@@ -48,7 +49,7 @@ class FileWriteDebouncer:
                 else:
                     time.sleep(self.check_interval)
                     elapsed += self.check_interval
-                    
+
             return True
         except (FileNotFoundError, PermissionError):
             return False
@@ -59,20 +60,23 @@ class SentryEventHandler(FileSystemEventHandler):
     自定义 watchdog 事件处理器。
     过滤无效的临时文件，并对通过过滤的文件事件执行防抖检查，最终投递进缓冲队列。
     """
+
     def __init__(self, dispatch_queue: Queue, debouncer: FileWriteDebouncer):
         super().__init__()
         self.dispatch_queue = dispatch_queue
         self.debouncer = debouncer
+        # Optional test hook: callable invoked with a Path when events are processed
+        self._dispatch_callback: Optional[Callable[[Path], None]] = None
 
     def on_created(self, event: FileSystemEvent) -> None:
         if event.is_directory:
             return
-        self._process_event(Path(event.src_path))
+        self._process_event(Path(str(event.src_path)))
 
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory:
             return
-        self._process_event(Path(event.src_path))
+        self._process_event(Path(str(event.src_path)))
 
     def _is_temp_file(self, path: Path) -> bool:
         """
@@ -80,10 +84,10 @@ class SentryEventHandler(FileSystemEventHandler):
         """
         name = path.name
         return (
-            name.startswith(".") or 
-            name.endswith(".tmp") or 
-            name.endswith(".swp") or 
-            name.endswith("~")
+            name.startswith(".")
+            or name.endswith(".tmp")
+            or name.endswith(".swp")
+            or name.endswith("~")
         )
 
     def _process_event(self, file_path: Path) -> None:
@@ -93,7 +97,7 @@ class SentryEventHandler(FileSystemEventHandler):
 
         # 2. 立即触发上层的 debounced dispatch 回调（如果已注册），
         #    以便单元测试可以同步断言 handler 的行为。
-        callback = getattr(self, '_dispatch_callback', None)
+        callback = getattr(self, "_dispatch_callback", None)
         if callable(callback):
             callback(file_path)
             return
@@ -107,6 +111,7 @@ class SentryWatcher:
     哨兵核心监听器。
     管理 watchdog 监控实例的生命周期，支持配置并并行监控多个不同的物理目录。
     """
+
     def __init__(
         self,
         watch_configs: Optional[List[Dict[str, Any]]] = None,
@@ -140,12 +145,16 @@ class SentryWatcher:
         # debounce timers per path
         self._debounce_timers: dict[str, Timer] = {}
         # expose an event handler instance for tests to invoke directly
-        handler_queue = self.dispatch_queue if self.dispatch_queue is not None else Queue()
+        handler_queue = (
+            self.dispatch_queue if self.dispatch_queue is not None else Queue()
+        )
         self.event_handler = SentryEventHandler(handler_queue, self.debouncer)
         # Register a dynamic wrapper so that if tests patch
         # `self._dispatch_debounced_event`, the handler will invoke the patched
         # function.
-        self.event_handler._dispatch_callback = lambda fp, _self=self: _self._dispatch_debounced_event(fp)
+        self.event_handler._dispatch_callback = (
+            lambda fp, _self=self: _self._dispatch_debounced_event(fp)
+        )
 
     def start(self) -> None:
         """
@@ -165,7 +174,9 @@ class SentryWatcher:
             watch_path.mkdir(parents=True, exist_ok=True)
 
             # schedule the already-created handler so tests can access it
-            self.observer.schedule(self.event_handler, path=str(watch_path), recursive=False)
+            self.observer.schedule(
+                self.event_handler, path=str(watch_path), recursive=False
+            )
             print(f"[Sentry] Active listener successfully mounted on: {watch_path}")
 
         self.observer.start()

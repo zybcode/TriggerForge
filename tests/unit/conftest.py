@@ -1,7 +1,7 @@
 """
 TriggerForge - Centralized Pytest Configuration & Shared Fixtures
 Author: zybcode
-Description: Centralized Pytest fixtures providing isolated, self-cleaning 
+Description: Centralized Pytest fixtures providing isolated, self-cleaning
              file system environments and mock data structures for unit testing.
 """
 
@@ -48,9 +48,9 @@ def sample_config_dict() -> Dict[str, Any]:
                         "plugin_name": "dummy_plugin",
                         "plugin_version": "1.0.0",
                         "timeout": 10,
-                        "params": {"mode": "test"}
+                        "params": {"mode": "test"},
                     }
-                ]
+                ],
             }
         ]
     }

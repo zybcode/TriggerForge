@@ -5,6 +5,7 @@ from triggerforge.core.sentry.watcher import SentryWatcher
 
 logger = logging.getLogger(__name__)
 
+
 class TriggerForgeLooper:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -18,7 +19,12 @@ class TriggerForgeLooper:
 
         watch_path = self.config.get("watch_path")
         if watch_path:
-            return [{"path": watch_path, "debounce_seconds": self.config.get("debounce_seconds", 1.0)}]
+            return [
+                {
+                    "path": watch_path,
+                    "debounce_seconds": self.config.get("debounce_seconds", 1.0),
+                }
+            ]
 
         return []
 
@@ -42,7 +48,11 @@ class TriggerForgeLooper:
             # 包装为 SentryWatcher 期望的配置结构，传递 debounce_seconds
             watcher = SentryWatcher(
                 watch_configs=[folder_config],
-                debounce_seconds=float(folder_config.get("debounce_seconds", self.config.get("debounce_seconds", 1.0)))
+                debounce_seconds=float(
+                    folder_config.get(
+                        "debounce_seconds", self.config.get("debounce_seconds", 1.0)
+                    )
+                ),
             )
             watcher.start()
             self.watchers.append(watcher)
@@ -64,6 +74,7 @@ class TriggerForgeLooper:
         for watcher in self.watchers:
             watcher.stop()
         logger.info("All watchers stopped safely.")
+
 
 def run_looper(config: Dict[str, Any]):
     looper = TriggerForgeLooper(config)

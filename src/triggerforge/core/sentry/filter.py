@@ -22,6 +22,7 @@ class EventFilter:
       - regex_pattern: str
       - duplicate_cooldown_seconds: float
     """
+
     def __init__(
         self,
         whitelist_patterns: Optional[List[str]] = None,

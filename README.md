@@ -1,11 +1,63 @@
+
+
+```markdown
 <p align="center">
   <img src="docs/assets/logo.png" width="200">
 </p>
 
-# TriggerForge
+<p align="center">
+  <strong><a href="docs/index.md">📖 查看详细文档 (Full Documentation)</a></strong>
+</p>
+
 ---
 
-```markdown
+## 🛠️ 简体中文 (Chinese)
+
+# 🛠️ TriggerForge (v1.1-PRO)
+
+> **一个事件驱动的目录编排引擎，具备健壮的子进程沙箱、配置即代码 (Configuration-as-Code) 以及弹性的故障隔离能力。**
+
+TriggerForge 是一个现代化的、生产就绪的守护进程，专为监控文件夹、编排复杂的文件处理流水线以及在高度隔离的子进程中执行自定义插件而设计。
+
+---
+
+## 🛠️ 开发设置
+
+为了确保开发环境的一致性和测试套件的稳定性，请遵循以下步骤：
+
+### 1. 环境准备
+TriggerForge 使用 `src/` 布局来组织源代码。为了确保测试能正确识别模块路径，请始终从项目根目录通过 `python -m` 运行 `pytest`。
+
+```bash
+# 1. 创建并激活虚拟环境 (Windows PowerShell)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# 2. 安装必要依赖
+pip install -r requirements.txt
+
+```
+
+### 2. 运行测试
+
+我们的测试套件包含一个自动模块导入路径注入机制，以确保其在不同开发环境下运行的一致性。
+
+```bash
+# 从项目根目录运行所有测试
+python -m pytest -s
+
+```
+
+---
+
+## 🤝 贡献说明
+
+我们欢迎贡献！在提交 PR 之前，请遵循项目标准并确保所有测试通过 `python -m pytest`。
+
+---
+
+## 🇬🇧 English Version
+
 # 🛠️ TriggerForge (v1.1-PRO)
 
 > **An event-driven directory orchestration engine with robust subprocess sandboxing, configuration-as-code, and resilient fault isolation.**
@@ -19,6 +71,7 @@ TriggerForge is a modern, production-ready daemon designed to watch folders, orc
 To ensure consistency in your development environment and stability in your test suite, please follow these steps:
 
 ### 1. Environment Preparation
+
 TriggerForge uses a `src/` layout to keep the source code organized. To ensure that tests can correctly identify module paths, please always run `pytest` via `python -m` from the project root directory.
 
 ```bash
@@ -41,54 +94,10 @@ python -m pytest -s
 
 ```
 
-*Note: If you encounter a `ModuleNotFoundError`, please ensure you are executing the command from the project root and that your virtual environment is activated. We have resolved complex module import issues via `__init__.py` shims and path injection, eliminating the need to manually configure `PYTHONPATH`.*
-
----
-
-## ✨ Key Features
-
-* 🛡️ **Subprocess Sandbox Isolation:** Run untrusted or legacy plugins in dedicated, memory-capped child processes.
-* 🔄 **Architecture as Code:** Configuration documentation is auto-generated, ensuring consistency between schemas and documentation.
-* ⚡ **Resilient Multi-Threading:** High-performance event dispatching powered by `ThreadPoolExecutor`.
-* 🧪 **Zero-Flaky Test Suite:** Built-in Mock Filesystem tests ensure 100% stability for CI/CD pipelines.
-
----
-
-## 🚀 Quick Start
-
-### 1. Configure your Forge
-
-Create a `config.yaml` file:
-
-```yaml
-watch_folders:
-  - path: "./storage/watch"
-    concurrency: 4
-    strategies:
-      - plugin_name: "example_plugin"
-        timeout: 15
-
-```
-
-### 2. Start the Engine
-
-```bash
-python -m triggerforge.cli --config config.yaml
-
-```
-
 ---
 
 ## 🤝 Contributing
 
 We welcome contributions! Please follow project standards and ensure all tests pass via `python -m pytest` before submitting a PR.
-
----
-
-## ⭐ Show Your Support
-
-If you find TriggerForge helpful in streamlining your workflows, please give us a **Star**! ☕
-
-```
 
 ```

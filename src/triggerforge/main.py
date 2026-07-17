@@ -1,6 +1,7 @@
 """
 TriggerForge main entrypoint exposed as triggerforge.main.
 """
+
 from __future__ import annotations
 
 import sys
@@ -11,7 +12,7 @@ from triggerforge.cli import parse_args, run_cli_logic
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 

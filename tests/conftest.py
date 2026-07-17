@@ -1,7 +1,7 @@
 """
 TriggerForge - Unit Test Configuration & Shared Fixtures
 Author: zybcode
-Description: Centralized Pytest fixtures providing isolated, self-cleaning 
+Description: Centralized Pytest fixtures providing isolated, self-cleaning
              file system environments and mock data structures for unit testing.
 """
 
@@ -13,6 +13,7 @@ from typing import Generator, Dict, Any
 
 # 将项目的 src 目录绝对路径强制加入系统路径
 import sys
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 
@@ -22,6 +23,7 @@ def wait_for_watcher_ready(watcher, timeout: float = 2.0) -> None:
     while not getattr(watcher, "is_running", False) and (time.time() - start) < timeout:
         time.sleep(0.05)
     assert getattr(watcher, "is_running", False)
+
 
 @pytest.fixture
 def temp_workspace(tmp_path: Path) -> Generator[Path, None, None]:
@@ -56,9 +58,9 @@ def sample_config_dict() -> Dict[str, Any]:
                         "plugin_name": "dummy_plugin",
                         "plugin_version": "1.0.0",
                         "timeout": 10,
-                        "params": {"mode": "test"}
+                        "params": {"mode": "test"},
                     }
-                ]
+                ],
             }
         ]
     }

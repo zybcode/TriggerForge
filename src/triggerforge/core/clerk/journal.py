@@ -6,6 +6,7 @@ Description: Subprocess output interceptor and crash dumper. Records execution
 """
 
 import json
+import os
 import logging
 import sys
 import time
@@ -63,11 +64,11 @@ class ClerkJournal:
         error_message: str,
         stdout: str,
         stderr: str,
-        strategy_params: Dict[str, Any]
+        strategy_params: Dict[str, Any],
     ) -> Path:
         """
         当插件遭遇硬超时、段错误或非零状态退出崩溃时，Clerk 自动导出结构化的故障现场诊断报告[cite: 1, 2]。
-        
+
         Args:
             file_path: 触发任务的源文件路径
             plugin_name: 异常插件的唯一标识名
@@ -76,7 +77,7 @@ class ClerkJournal:
             stdout: 子进程崩溃前输出的 stdout 缓存
             stderr: 子进程崩溃前输出的 stderr 堆栈
             strategy_params: 触发该插件时所传入的 YAML 动态参数字典
-            
+
         Returns:
             Path: 生成的 .panic.json 诊断文件路径
         """
@@ -90,36 +91,33 @@ class ClerkJournal:
             "target_file": {
                 "name": file_path.name,
                 "absolute_path": str(file_path.absolute()),
-                "size_bytes": file_path.stat().st_size if file_path.exists() else -1
+                "size_bytes": file_path.stat().st_size if file_path.exists() else -1,
             },
             "failed_plugin": {
                 "name": plugin_name,
                 "exit_code": exit_code,
                 "error_summary": error_message,
-                "strategy_params": strategy_params
+                "strategy_params": strategy_params,
             },
             "environment_context": {
                 "python_version": sys.version,
                 "platform": sys.platform,
-                "cwd": os.getcwd()
+                "cwd": os.getcwd(),
             },
-            "captured_streams": {
-                "stdout": stdout,
-                "stderr": stderr
-            }
+            "captured_streams": {"stdout": stdout, "stderr": stderr},
         }
 
         try:
             with open(panic_file_path, "w", encoding="utf-8") as f:
                 json.dump(panic_data, f, indent=4, ensure_ascii=False)
-            
+
             # 向主系统警报，输出标准的故障记录
             sys.stderr.write(
                 f"<2>[Clerk] PANIC DUMP CRITICAL: Plugin '{plugin_name}' failed catastrophically. "
                 f"Diagnostic context dumped to '{panic_file_path.absolute()}'.\n"
             )
             sys.stderr.flush()
-            
+
             return panic_file_path
         except Exception as e:
             fallback_err = f"[Clerk] Failed to write panic dump JSON: {e}"
