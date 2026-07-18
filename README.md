@@ -1,5 +1,4 @@
 
-
 ```markdown
 <p align="center">
   <img src="docs/assets/logo.png" width="200">
@@ -48,11 +47,17 @@ python -m pytest -s
 
 ```
 
----
+## 🤝 贡献与合规 (Contributing)
 
-## 🤝 贡献说明
+我们非常欢迎社区贡献！为了确保项目的合规性，请遵循以下流程：
 
-我们欢迎贡献！在提交 PR 之前，请遵循项目标准并确保所有测试通过 `python -m pytest`。
+* **签署协议**：首次提交 PR 时，请根据 [CLA Assistant](https://cla-assistant.io/) 的提示签署贡献者许可协议 (CLA)。
+* **开发规范**：提交代码前，请务必确保所有测试通过 `python -m pytest`。
+* **更多指南**：详细的参与流程请查阅 [docs/zh/CONTRIBUTING.md](https://www.google.com/search?q=docs/zh/CONTRIBUTING.md)。
+
+## 📜 协议 (License)
+
+本项目采用 [GPLv3 License](https://www.google.com/search?q=LICENSE) 进行开源。
 
 ---
 
@@ -94,10 +99,16 @@ python -m pytest -s
 
 ```
 
----
-
 ## 🤝 Contributing
 
-We welcome contributions! Please follow project standards and ensure all tests pass via `python -m pytest` before submitting a PR.
+We welcome contributions! To ensure project compliance, please follow these steps:
+
+* **Sign CLA**: Upon your first pull request, please sign the Contributor License Agreement (CLA) as prompted by the [CLA Assistant](https://cla-assistant.io/).
+* **Coding Standards**: Ensure all tests pass via `python -m pytest` before submitting a PR.
+* **Detailed Guide**: See [docs/en/CONTRIBUTING.md](https://www.google.com/search?q=docs/en/CONTRIBUTING.md) for full details.
+
+## 📜 License
+
+This project is licensed under the [GPLv3 License](https://www.google.com/search?q=LICENSE).
 
 ```
