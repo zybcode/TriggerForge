@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from triggerforge.core.looper import TriggerForgeLooper, run_looper
 
 # 显式定义 __all__，这是一种良好的工程习惯，
