@@ -67,6 +67,7 @@ pythonpath = ["src"]
 
 [tool.black]
 # 自动排除这些非 Python 文件或目录
+target-version = ['py314']
 exclude = '''
 /(
     \.git

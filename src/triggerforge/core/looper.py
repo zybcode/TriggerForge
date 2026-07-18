@@ -79,7 +79,7 @@ class TriggerForgeLooper:
         try:
             while self.is_running:
                 time.sleep(1)
-        except (KeyboardInterrupt, InterruptedError):
+        except KeyboardInterrupt, InterruptedError:
             self.stop()
             raise
         except Exception:

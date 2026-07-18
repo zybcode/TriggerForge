@@ -69,7 +69,7 @@ class FileWriteDebouncer:
                     elapsed += self.check_interval
 
             return True
-        except (FileNotFoundError, PermissionError):
+        except FileNotFoundError, PermissionError:
             return False
 
 
