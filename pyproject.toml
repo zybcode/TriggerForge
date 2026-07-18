@@ -56,8 +56,11 @@ dependencies = [
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 cov = "pytest --cov=src/triggerforge --cov-report=term-missing {args:tests}"
-lint = ["black --check src tests", "mypy src"]
 format = "black src tests"
+lint = [
+    "black --check src tests",
+    "mypy src"
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
