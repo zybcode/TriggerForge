@@ -1,49 +1,111 @@
-针对评审专家提出的最后 2 项修正要求（补充 `priority` 约束说明及统一状态标记），以下是最终修正后的完整版 `dev_plan_v1.2.md`，可直接确认归档。
+以下是经过架构评审专家审核通过的 **TriggerForge v1.2 全量开发规划文档**。
 
-```markdown
+---
+
 # TriggerForge v1.2 开发规划文档
 
-> **版本**：v1.2-Final (已修正)
-> **状态**：已修正（待归档）
+> **版本**：v1.2-Final-Merged
+> **状态**：已锁定（归档版）
 > **目录**：docs/zh/dev_plan_v1.2.md
 
 ## 1. 概述
-本版本致力于实现 TriggerForge 的运维自动化闭环，核心目标是提升系统在高负载下的稳定性与防锁死能力，并正式引入配置热加载机制，为未来商业化工具链提供稳定的基座支持。
+
+本版本致力于实现 TriggerForge 的运维自动化闭环，核心目标是提升高负载下的稳定性与防锁死能力，正式引入工程化路径管理机制及新手引导工具，为商业化基座提供支撑。
 
 ## 2. 核心任务清单
+
 | 序号 | 任务模块 | 关键开发内容 |
-| :--- | :--- | :--- |
-| 1 | **Schema 扩展** | 实现 `priority` 与 `allow_override_timeout` 校验逻辑及 `metadata` 扩展槽[cite: 9]。 |
-| 2 | **配置审计引擎** | 开发 `ForgeConfigManager`，支持 `--check` 模式与结构化 JSON 输出[cite: 9]。 |
-| 3 | **热加载机制** | 实现 `SIGHUP` 信号监听，支持原子化配置切换与回滚降级[cite: 9]。 |
-| 4 | **迁移指引** | 编写 `migration_v1.2.md`，明确弃用状态及迁移路径[cite: 9]。 |
-| 5 | **集成测试** | 覆盖豁免越权、热加载一致性及原子切换测试[cite: 9]。 |
+| --- | --- | --- |
+| 1 | **Schema 与目录扩展** | 完善 `priority` 校验、`working_dir` 自定义支持及惰性创建逻辑
 
-## 3. 技术详细实现要求
+ |
+| 2 | **配置审计引擎** | 开发 `ForgeConfigManager`，支持 `--check` 及结构化 JSON 审计报告
 
-### 3.1 双重约束校验逻辑 (`src/triggerforge/core/schema.py`)
-在 `PluginStrategySchema` 模型中实现 `model_validator`[cite: 9]：
-* **强制约束**: 当 `allow_override_timeout = true` 时，必须同时指定 `priority = "high"`。若条件不满足，引擎在启动预检阶段抛出 `ValueError` 并拒绝启动，确保系统安全性[cite: 9]。
-* **商业扩展预留**: 新增 `metadata` 字典字段，用于承载未来商业版本需要的数字签名、License Hash 或客户授权信息。该设计保持了 YAML 结构的向前兼容性[cite: 9]。
+ |
+| 3 | **工程内置引导** | 实现配置模板生成工具 (`init`)，内嵌路径推荐与交互式逻辑
 
-### 3.2 配置审计接口与热加载处理 (`src/triggerforge/utils/config_manager.py`)
-* **热加载原子性校验**: 接收 `SIGHUP` 后，触发 `ForgeConfigManager` 进行审计。若新配置校验失败，则**保持当前运行配置不变**，输出错误审计日志并发出告警，确保系统状态不因错误配置而崩溃[cite: 9]。
-* **退出码规范**: 0 (合规), 1 (违规), 2 (语法错误), 3 (内部执行异常)[cite: 9]。
+ |
+| 4 | **热加载机制** | 实现 `SIGHUP` 信号监听，支持生命周期隔离的原子化配置切换
 
-### 3.3 热加载机制 (`src/triggerforge/engine/core.py`)
-* **原子切换**: 采用“校验-替换”原子操作，非逐字段替换，确保热加载流程中系统内存中的配置集始终保持一致性[cite: 9]。
-* **审计追踪**: 切换完成后，系统强制输出审计变更摘要（含前后配置对比），并更新运行状态日志[cite: 9]。
+ |
+| 5 | **集成与测试** | 覆盖路径映射、权限校验、静态合规性及自动化回归测试
 
-## 4. 插件开发对齐标准
-* **标准化输出**: 插件须遵循 JSON 日志规范[cite: 9]。
-* **优先级枚举**: 统一枚举值：`high` (高), `standard` (标准), `low` (低)[cite: 9]。
-* **约束说明**: **仅当 `priority = "high"` 时，`allow_override_timeout` 字段才能设置为 `true`。`standard` 与 `low` 级别不支持超时覆盖。**
+ |
 
-## 5. 测试策略
-* **单元测试**: 使用 `hatch run pytest tests/test_config_manager.py -v` 执行配置审计模块专项测试。针对 `SIGHUP` 触发的重载逻辑增加时序测试，确保原子性切换[cite: 9]。
-* **集成测试**: 将 `--check` 模式接入 Git Hooks，并增加自动化脚本模拟配置文件变更与信号发送，确保热加载流程稳定性[cite: 9]。
+## 3. 架构约束与技术实施
 
----
-*注：本开发规划已符合架构评审要求，待最终归档。参考 [迁移指南](./migration_v1.2.md)。*
+### 3.1 核心约束 (`src/triggerforge/core/schema.py`)
+
+* **目录自定义 (`working_dir`)**：
+
+
+* **定义**：支持插件独立工作目录。相对路径基准为配置文件目录 `${config_dir}`；绝对路径原样解析。
+
+
+* **权限与创建**：启动预检校验父目录是否可写；若目标路径缺失，则触发“惰性创建”（权限 `0750`，递归创建父级）。
+
+
+* **默认值与联动**：未显式配置时，默认指向约定目录。此配置独立于 `priority`，无联动约束；多插件共享目录风险由用户自担。
+
+
+
+
+* **双重约束**: `allow_override_timeout = true` 强制要求 `priority = "high"`。
+
+
+
+### 3.2 配置审计接口 (`src/triggerforge/utils/config_manager.py`)
+
+* **静态检查增强**：`--check` 模式将校验路径合法性（非法字符检测、路径长度限制）。
+
+
+* **JSON 审计结构**：支持 `--format json`，输出规范如下：
+
+
+```json
+{
+  "status": "pass",
+  "exit_code": 0,
+  "checks": {"total": 10, "passed": 10, "failed": 0, "warnings": 0},
+  "errors": [],
+  "warnings": [{"field": "watch_folders[0].path", "message": "建议使用 POSIX 风格路径"}],
+  "metadata": {"version": "1.2", "os": "linux", "timestamp": "2026-07-20T10:00:00Z"}
+}
 
 ```
+
+
+
+### 3.3 工程内置引导 (`src/triggerforge/cli/init.py`)
+
+* **行为规范**：
+* **模板填充**：`init --template` 生成配置时，将为每个 `strategy` 显式填充 `working_dir`（推荐模式：`./output/{plugin_name}/`），降低新手理解成本。
+
+
+* **路径处理**：模板预设路径统一使用 POSIX 风格 (`/`)。用户自定义路径不做自动转换，仅在 `--check` 阶段校验一致性。
+
+
+
+
+* **系统环境兼容**：根据宿主 OS 动态适配权限位。
+
+
+
+### 3.4 热加载与生命周期 (`src/triggerforge/engine/core.py`)
+
+* **原子切换**：采用“校验-替换”原子操作。
+
+
+* **路径隔离**：新配置生效后，新启动任务采用新路径；运行中任务保持原路径直至生命周期结束。
+
+
+
+## 4. 测试策略与验收
+
+* **路径与权限测试**：覆盖无权限/目录缺失场景，验证惰性创建 `0750` 权限有效性。
+
+
+* **静态合规测试**：构造长路径、非法字符路径，验证 `--check` 拦截准确性。
+
+
+* **集成验收**：提交 `audit_report.sample.json` 样板，确保 CI/CD 流水线解析兼容性。
