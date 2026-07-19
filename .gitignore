@@ -1,16 +1,17 @@
-# Virtual environment
-.venv/
-venv/
-env/
-
-# Python cache
+# Python 缓存与字节码
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 
-# OS junk
+# 编辑器与开发环境
+.venv/
+.vscode/
+.idea/
 .DS_Store
-Thumbs.db
 
-# Project local configs
-.env
-config.yaml
+# 项目特定排除
+.ruff_cache/
+.coverage
+htmlcov/

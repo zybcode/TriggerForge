@@ -1,0 +1,5 @@
+watch_path: "./test_watch"
+# 这里定义你的私有插件存放位置
+plugin_directory: "./private_plugins" 
+plugins:
+  - "MySecretPlugin"

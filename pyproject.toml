@@ -81,6 +81,7 @@ exclude = '''
     \.git
   | \.venv
   | config\.yaml
+  | \.pytest_cache
   | README\.md
   | docs
 )/
