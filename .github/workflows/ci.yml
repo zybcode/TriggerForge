@@ -2,9 +2,9 @@ name: TriggerForge CI
 
 on:
   push:
-    branches: [ main, develop, master ]
+    branches: [main, develop, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 permissions:
   contents: write
@@ -17,28 +17,28 @@ jobs:
         python-version: ["3.11"]
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install Hatch
-      run: |
-        pip install --upgrade pip
-        pip install hatch
+      - name: Install Hatch
+        run: |
+          pip install --upgrade pip
+          pip install hatch
 
-    - name: Clean Cache and Sync Environment
-      run: |
-        # 清理可能导致误报的缓存目录
-        rm -rf .mypy_cache .ruff_cache
-        # 重建环境以确保依赖与本地开发环境一致
-        hatch env prune
-        hatch run pip install .
+      - name: Clean Cache and Sync Environment
+        run: |
+          # 清理可能导致误报的缓存目录
+          rm -rf .mypy_cache .ruff_cache
+          # 重建环境以确保依赖与本地开发环境一致
+          hatch env prune
+          hatch run pip install .
 
-    - name: Run Quality Checks
-      run: |
-        hatch run lint
-        hatch run cov
+      - name: Run Quality Checks
+        run: |
+          hatch run lint
+          hatch run cov
 
   deploy-docs:
     runs-on: ubuntu-latest
@@ -49,10 +49,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      
+
       - name: Install Docs Dependencies
         run: |
           pip install mkdocs-material mkdocs-static-i18n
-      
+
       - name: Deploy Docs to GitHub Pages
         run: mkdocs gh-deploy --force
