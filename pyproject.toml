@@ -84,4 +84,9 @@ exclude = '''
   | README\.md
   | docs
 )/
+
+[tool.ruff]
+# 排除特定文件或目录
+lint.extend-select = ["I"]
+extend-exclude = ["README.md"]
 '''

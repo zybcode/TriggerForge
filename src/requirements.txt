@@ -1,7 +1,0 @@
-# TriggerForge - Core Dependencies
-watchdog>=4.0.0
-pydantic>=2.0.0
-pyyaml>=6.0.1
-
-# Development and Testing Tools
-pytest>=8.0.0
