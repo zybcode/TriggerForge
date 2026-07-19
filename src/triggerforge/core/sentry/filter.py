@@ -1,33 +1,32 @@
-"""
-TriggerForge - Event-driven directory orchestration engine.
-Copyright (C) 2026  [zybcode]
+# TriggerForge - Event-driven directory orchestration engine.
+# Copyright (C) 2026  [zybcode]
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-TriggerForge - Event Filter Module
-Author: zybcode
-Description: Advanced filtering engine supporting static path pattern matching,
-             regex-based blacklist/whitelist checks, and stateful event deduplication.
-"""
+
+# TriggerForge - Event Filter Module
+# Author: zybcode
+# Description: Advanced filtering engine supporting static path pattern matching,
+#             regex-based blacklist/whitelist checks, and stateful event deduplication.
+
+from __future__ import annotations
 
 import fnmatch
 import re
 import time
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Dict, List, Optional
 
 
 class EventFilter:

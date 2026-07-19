@@ -1,28 +1,27 @@
-"""
-TriggerForge - Event-driven directory orchestration engine.
-Copyright (C) 2026  [zybcode]
+# TriggerForge - Event-driven directory orchestration engine.
+# Copyright (C) 2026  [zybcode]
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
-import pytest
-from pathlib import Path
+from __future__ import annotations
+
 from unittest.mock import patch
-from triggerforge.core.sentry.watcher import SentryWatcher
+
+from watchdog.events import DirCreatedEvent, FileCreatedEvent
+
 from triggerforge.core.sentry.queue import EventBufferQueue
-from watchdog.events import FileCreatedEvent, DirCreatedEvent
+from triggerforge.core.sentry.watcher import SentryWatcher
 
 
 def test_event_handler_captures_creation(temp_workspace):

@@ -1,33 +1,32 @@
-"""
-TriggerForge - Event-driven directory orchestration engine.
-Copyright (C) 2026  [zybcode]
+# TriggerForge - Event-driven directory orchestration engine.
+# Copyright (C) 2026  [zybcode]
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-TriggerForge - Centralized Pytest Configuration & Shared Fixtures
-Author: zybcode
-Description: Centralized Pytest fixtures providing isolated, self-cleaning
-             file system environments and mock data structures for unit testing.
-"""
+# TriggerForge - Centralized Pytest Configuration & Shared Fixtures
+# Author: zybcode
+# Description: Centralized Pytest fixtures providing isolated, self-cleaning
+#             file system environments and mock data structures for unit testing.
+
+from __future__ import annotations
+
+import shutil
+import sys
+from pathlib import Path
+from typing import Any, Dict, Generator
 
 import pytest
-import shutil
-from pathlib import Path
-from typing import Generator, Dict, Any
-import sys
 
 # 自动处理 src 目录的路径导入，确保测试环境能直接导入 triggerforge 包
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))

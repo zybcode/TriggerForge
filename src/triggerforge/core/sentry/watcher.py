@@ -1,38 +1,36 @@
-"""
-TriggerForge - Event-driven directory orchestration engine.
-Copyright (C) 2026  [zybcode]
+# TriggerForge - Event-driven directory orchestration engine.
+# Copyright (C) 2026  [zybcode]
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""
-TriggerForge - Sentry Watcher Module
-Author: zybcode
-Description: High-performance directory monitor that tracks filesystem events,
-             applies defensive debouncing filters, and dispatches events.
-"""
+# TriggerForge - Sentry Watcher Module
+# Author: zybcode
+# Description: High-performance directory monitor that tracks filesystem events,
+#             applies defensive debouncing filters, and dispatches events.
 
-import os
+from __future__ import annotations
+
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Callable, Optional
 from queue import Queue
-from threading import Thread, Timer
+from threading import Timer
+from typing import Any, Callable, Dict, List, Optional
+
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 
 # 依赖第三方 watchdog 库进行跨平台文件系统事件监听
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 
 class FileWriteDebouncer:
@@ -69,7 +67,7 @@ class FileWriteDebouncer:
                     elapsed += self.check_interval
 
             return True
-        except FileNotFoundError, PermissionError:
+        except (FileNotFoundError, PermissionError):
             return False
 
 
@@ -170,8 +168,8 @@ class SentryWatcher:
         # Register a dynamic wrapper so that if tests patch
         # `self._dispatch_debounced_event`, the handler will invoke the patched
         # function.
-        self.event_handler._dispatch_callback = (
-            lambda fp, _self=self: _self._dispatch_debounced_event(fp)
+        self.event_handler._dispatch_callback = lambda fp, _self=self: (
+            _self._dispatch_debounced_event(fp)
         )
 
     def start(self) -> None:
