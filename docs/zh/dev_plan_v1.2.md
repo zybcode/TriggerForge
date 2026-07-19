@@ -1,56 +1,49 @@
+针对评审专家提出的最后 2 项修正要求（补充 `priority` 约束说明及统一状态标记），以下是最终修正后的完整版 `dev_plan_v1.2.md`，可直接确认归档。
+
+```markdown
 # TriggerForge v1.2 开发规划文档
 
-> **版本**：v1.2-Final (已终审)
-> **状态**：启动开发
+> **版本**：v1.2-Final (已修正)
+> **状态**：已修正（待归档）
 > **目录**：docs/zh/dev_plan_v1.2.md
 
 ## 1. 概述
-本版本旨在构建 TriggerForge 的运维自动化闭环，核心目标是实现配置管理的流水线式管理，并通过“全局约束 + 插件策略”的联动，提升系统在高负载下的稳定性与防锁死能力。
+本版本致力于实现 TriggerForge 的运维自动化闭环，核心目标是提升系统在高负载下的稳定性与防锁死能力，并正式引入配置热加载机制，为未来商业化工具链提供稳定的基座支持。
 
 ## 2. 核心任务清单
-
 | 序号 | 任务模块 | 关键开发内容 |
 | :--- | :--- | :--- |
-| 1 | **Schema 扩展** | 实现 `priority` 枚举与 `allow_override_timeout` 标志位，引入双重校验逻辑。 |
-| 2 | **配置审计引擎** | 开发 `ForgeConfigManager`，支持 `--check` 模式与结构化 JSON 输出。 |
-| 3 | **架构基准更新** | 补充进程级调度机制说明及 v1.3 热加载演进方向。 |
-| 4 | **迁移指引** | 编写 `migration_v1.2.md`，明确弃用字段清单及升级路径。 |
-| 5 | **集成测试** | 构建单元测试，覆盖豁免越权与边界条件检查。 |
+| 1 | **Schema 扩展** | 实现 `priority` 与 `allow_override_timeout` 校验逻辑及 `metadata` 扩展槽[cite: 9]。 |
+| 2 | **配置审计引擎** | 开发 `ForgeConfigManager`，支持 `--check` 模式与结构化 JSON 输出[cite: 9]。 |
+| 3 | **热加载机制** | 实现 `SIGHUP` 信号监听，支持原子化配置切换与回滚降级[cite: 9]。 |
+| 4 | **迁移指引** | 编写 `migration_v1.2.md`，明确弃用状态及迁移路径[cite: 9]。 |
+| 5 | **集成测试** | 覆盖豁免越权、热加载一致性及原子切换测试[cite: 9]。 |
 
 ## 3. 技术详细实现要求
 
 ### 3.1 双重约束校验逻辑 (`src/triggerforge/core/schema.py`)
-在 `PluginStrategySchema` 模型中实现 `model_validator`：
-*   当 `allow_override_timeout` 设置为 `True` 时，必须同时指定 `priority = "high"`。
-*   违规配置需在启动预检阶段抛出 `ValueError`，阻断引擎运行。
+在 `PluginStrategySchema` 模型中实现 `model_validator`[cite: 9]：
+* **强制约束**: 当 `allow_override_timeout = true` 时，必须同时指定 `priority = "high"`。若条件不满足，引擎在启动预检阶段抛出 `ValueError` 并拒绝启动，确保系统安全性[cite: 9]。
+* **商业扩展预留**: 新增 `metadata` 字典字段，用于承载未来商业版本需要的数字签名、License Hash 或客户授权信息。该设计保持了 YAML 结构的向前兼容性[cite: 9]。
 
-### 3.2 配置审计接口 (`src/triggerforge/utils/config_manager.py`)
-*   **CLI 交互**: 
-    *   **终端模式**: 输出人类可读的彩色报告。
-    *   **CI/CD 模式**: 通过环境变量 `CI=true` 检测，强制输出符合标准格式的 JSON 报告。
-*   **退出码规范 (Exit Codes)**:
-    *   **0**: 校验通过，配置合规。
-    *   **1**: 校验失败，存在违规配置（如超时溢出）。
-    *   **2**: 文件不存在或 YAML 语法错误。
-    *   **3**: 内部执行异常。
-*   **JSON 结构**:
-    ```json
-    {
-      "status": "fail",
-      "exit_code": 1,
-      "errors": [
-        {"field": "plugin_name", "message": "描述详细错误原因"}
-      ]
-    }
-    ```
+### 3.2 配置审计接口与热加载处理 (`src/triggerforge/utils/config_manager.py`)
+* **热加载原子性校验**: 接收 `SIGHUP` 后，触发 `ForgeConfigManager` 进行审计。若新配置校验失败，则**保持当前运行配置不变**，输出错误审计日志并发出告警，确保系统状态不因错误配置而崩溃[cite: 9]。
+* **退出码规范**: 0 (合规), 1 (违规), 2 (语法错误), 3 (内部执行异常)[cite: 9]。
 
-## 4. 测试策略
-*   **单元测试**: 使用 `hatch run pytest tests/test_config_manager.py -v` 执行配置审计模块的专项测试，确保豁免逻辑覆盖率 > 90%。
-*   **集成测试**: 将 `--check` 模式接入 Git Hooks，确保配置变更在提交阶段即可完成自动化审计。
+### 3.3 热加载机制 (`src/triggerforge/engine/core.py`)
+* **原子切换**: 采用“校验-替换”原子操作，非逐字段替换，确保热加载流程中系统内存中的配置集始终保持一致性[cite: 9]。
+* **审计追踪**: 切换完成后，系统强制输出审计变更摘要（含前后配置对比），并更新运行状态日志[cite: 9]。
 
-## 5. 系统演进预览
-*   **v1.3 预留**: 计划引入 `SIGHUP` 信号支持配置热加载，以实现无中断更新。
-*   **可观测性**: 未来规划将配置元数据接入 Prometheus 等监控系统，实现配置维度的可观测性。
+## 4. 插件开发对齐标准
+* **标准化输出**: 插件须遵循 JSON 日志规范[cite: 9]。
+* **优先级枚举**: 统一枚举值：`high` (高), `standard` (标准), `low` (低)[cite: 9]。
+* **约束说明**: **仅当 `priority = "high"` 时，`allow_override_timeout` 字段才能设置为 `true`。`standard` 与 `low` 级别不支持超时覆盖。**
+
+## 5. 测试策略
+* **单元测试**: 使用 `hatch run pytest tests/test_config_manager.py -v` 执行配置审计模块专项测试。针对 `SIGHUP` 触发的重载逻辑增加时序测试，确保原子性切换[cite: 9]。
+* **集成测试**: 将 `--check` 模式接入 Git Hooks，并增加自动化脚本模拟配置文件变更与信号发送，确保热加载流程稳定性[cite: 9]。
 
 ---
-*注：本开发规划已通过架构评审委员会批准，开发过程中若涉及逻辑变动，需报备评审专家组。请参考 [迁移指南](../zh/migration_v1.2.md) 进行配置平滑演进。*
+*注：本开发规划已符合架构评审要求，待最终归档。参考 [迁移指南](./migration_v1.2.md)。*
+
+```

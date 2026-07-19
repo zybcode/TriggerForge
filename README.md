@@ -53,11 +53,11 @@ python -m pytest -s
 
 * **签署协议**：首次提交 PR 时，请根据 [CLA Assistant](https://cla-assistant.io/) 的提示签署贡献者许可协议 (CLA)。
 * **开发规范**：提交代码前，请务必确保所有测试通过 `python -m pytest`。
-* **更多指南**：详细的参与流程请查阅 [docs/zh/CONTRIBUTING.md](https://www.google.com/search?q=docs/zh/CONTRIBUTING.md)。
+* **更多指南**：详细的参与流程请查阅 [docs/zh/CONTRIBUTING.md](https://github.com/zybcode/TriggerForge/blob/master/docs/legal/CONTRIBUTING.md)。
 
 ## 📜 协议 (License)
 
-本项目采用 [GPLv3 License](https://www.google.com/search?q=LICENSE) 进行开源。
+本项目采用 [GPLv3 License](https://github.com/zybcode/TriggerForge/blob/master/LICENSE) 进行开源。
 
 ---
 
@@ -106,10 +106,10 @@ We welcome contributions! To ensure project compliance, please follow these step
 
 * **Sign CLA**: Upon your first pull request, please sign the Contributor License Agreement (CLA) as prompted by the [CLA Assistant](https://cla-assistant.io/).
 * **Coding Standards**: Ensure all tests pass via `python -m pytest` before submitting a PR.
-* **Detailed Guide**: See [docs/en/CONTRIBUTING.md](https://www.google.com/search?q=docs/en/CONTRIBUTING.md) for full details.
+* **Detailed Guide**: See [docs/en/CONTRIBUTING.md](https://github.com/zybcode/TriggerForge/blob/master/docs/legal/CONTRIBUTING.md) for full details.
 
 ## 📜 License 
 
-This project is licensed under the [GPLv3 License](https://www.google.com/search?q=LICENSE).
+This project is licensed under the [GPLv3 License](https://github.com/zybcode/TriggerForge/blob/master/LICENSE).
 
 ```
