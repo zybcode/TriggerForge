@@ -20,8 +20,6 @@
 # normally by Python when the src directory is present on sys.path.
 
 
-from __future__ import annotations
-
 __version__ = "1.1.0"
 
 import importlib

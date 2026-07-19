@@ -27,6 +27,14 @@ jobs:
         pip install --upgrade pip
         pip install hatch
 
+    - name: Clean Cache and Sync Environment
+      run: |
+        # 清理可能导致误报的缓存目录
+        rm -rf .mypy_cache .ruff_cache
+        # 重建环境以确保依赖与本地开发环境一致
+        hatch env prune
+        hatch run pip install .
+
     - name: Run Quality Checks
       run: |
         hatch run lint
