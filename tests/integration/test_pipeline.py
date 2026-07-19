@@ -39,7 +39,7 @@ def test_full_pipeline_success(integration_env: Dict[str, Path]):
     }
 
     queue = EventBufferQueue()
-    watcher = SentryWatcher(watch_configs=[config], dispatch_queue=queue)
+    watcher = SentryWatcher(watch_configs=[config], dispatch_queue=queue)  # type: ignore[arg-type]
     watcher.start()
     wait_for_watcher_ready(watcher)
 

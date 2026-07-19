@@ -16,16 +16,16 @@
 
 from __future__ import annotations
 
+from queue import Queue
 from unittest.mock import patch
 
 from watchdog.events import DirCreatedEvent, FileCreatedEvent
 
-from triggerforge.core.sentry.queue import EventBufferQueue
 from triggerforge.core.sentry.watcher import SentryWatcher
 
 
 def test_event_handler_captures_creation(temp_workspace):
-    queue = EventBufferQueue()
+    queue = Queue()
     watcher = SentryWatcher(
         watch_configs=[{"path": str(temp_workspace)}], dispatch_queue=queue
     )
@@ -38,7 +38,7 @@ def test_event_handler_captures_creation(temp_workspace):
 
 
 def test_watcher_ignores_directory_events(temp_workspace):
-    queue = EventBufferQueue()
+    queue = Queue()
     watcher = SentryWatcher(
         watch_configs=[{"path": str(temp_workspace)}], dispatch_queue=queue
     )

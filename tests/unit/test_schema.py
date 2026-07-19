@@ -66,7 +66,7 @@ def test_schema_missing_required_fields():
     assert "watch_folders" in str(exc_info.value)
 
     # 2. 监控文件夹配置缺失关键的监控路径 `path`
-    bad_folder_config = {
+    bad_folder_config: Dict[str, Any] = {
         "watch_folders": [{"success_path": "./success", "error_path": "./error"}]
     }
     with pytest.raises(ValidationError) as exc_info:
