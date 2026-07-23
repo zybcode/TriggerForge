@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>None./</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/"/>
+    </url>
+    <url>
+        <loc>Noneen/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/"/>
+    </url>
+    <url>
+        <loc>Noneen/architecture/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/architecture/"/>
+    </url>
+    <url>
+        <loc>Noneen/charter/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/charter/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/charter/"/>
+    </url>
+    <url>
+        <loc>Noneen/configuration/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/configuration/"/>
+    </url>
+    <url>
+        <loc>Noneen/deployment/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/deployment/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/deployment/"/>
+    </url>
+    <url>
+        <loc>Noneen/dev_plan_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/dev_plan_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/dev_plan_v1.2/"/>
+    </url>
+    <url>
+        <loc>Noneen/migration_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/migration_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/migration_v1.2/"/>
+    </url>
+    <url>
+        <loc>Noneen/plugin_dev/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/plugin_dev/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/plugin_dev/"/>
+    </url>
+    <url>
+        <loc>Noneen/setup/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/setup/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/setup/"/>
+    </url>
+    <url>
+        <loc>Nonelegal/CLA/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelegal/CLA/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/legal/CLA/"/>
+    </url>
+    <url>
+        <loc>Nonelegal/CONTRIBUTING/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelegal/CONTRIBUTING/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/legal/CONTRIBUTING/"/>
+    </url>
+    <url>
+        <loc>Nonezh/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/"/>
+    </url>
+    <url>
+        <loc>Nonezh/architecture/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/architecture/"/>
+    </url>
+    <url>
+        <loc>Nonezh/charter/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/charter/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/charter/"/>
+    </url>
+    <url>
+        <loc>Nonezh/configuration/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/configuration/"/>
+    </url>
+    <url>
+        <loc>Nonezh/deployment/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/deployment/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/deployment/"/>
+    </url>
+    <url>
+        <loc>Nonezh/dev_plan_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/dev_plan_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/dev_plan_v1.2/"/>
+    </url>
+    <url>
+        <loc>Nonezh/migration_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/migration_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/migration_v1.2/"/>
+    </url>
+    <url>
+        <loc>Nonezh/plugin_dev/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/plugin_dev/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/plugin_dev/"/>
+    </url>
+    <url>
+        <loc>Nonezh/setup/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/setup/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/setup/"/>
+    </url>
+    <url>
+        <loc>Nonezh/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/architecture/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/charter/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/charter/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/charter/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/configuration/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/configuration/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/deployment/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/deployment/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/deployment/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/dev_plan_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/dev_plan_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/dev_plan_v1.2/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/migration_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/migration_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/migration_v1.2/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/plugin_dev/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/plugin_dev/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/plugin_dev/"/>
+    </url>
+    <url>
+        <loc>Nonezh/en/setup/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/en/setup/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/setup/"/>
+    </url>
+    <url>
+        <loc>Nonezh/legal/CLA/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/legal/CLA/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelegal/CLA/"/>
+    </url>
+    <url>
+        <loc>Nonezh/legal/CONTRIBUTING/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/legal/CONTRIBUTING/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelegal/CONTRIBUTING/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/architecture/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/architecture/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/charter/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/charter/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/charter/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/configuration/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/configuration/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/deployment/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/deployment/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/deployment/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/dev_plan_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/dev_plan_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/dev_plan_v1.2/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/migration_v1.2/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/migration_v1.2/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/migration_v1.2/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/plugin_dev/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/plugin_dev/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/plugin_dev/"/>
+    </url>
+    <url>
+        <loc>Nonezh/zh/setup/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="Nonezh/zh/setup/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonezh/setup/"/>
+    </url>
+</urlset>
