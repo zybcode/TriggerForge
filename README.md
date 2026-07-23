@@ -6,7 +6,6 @@
   <strong><a href="docs/index.md">📖 查看详细文档 (Full Documentation)</a></strong>
 </p>
 
-```
 ---
 
 ## 🛠️ 简体中文 (Chinese)
