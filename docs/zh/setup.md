@@ -76,8 +76,8 @@ hatch run cov
 # 检查当前虚拟环境中的 Python 版本
 hatch run python --version
 
-# 验证您的配置文件是否合规（利用 Pydantic Schema 校验）
-hatch run triggerforge --check-config config.yaml
+# 验证您的配置文件是否合规（利用 Pydantic Schema 校验，不启动监听）
+hatch run triggerforge --config config.yaml --dry-run
 
 ```
 

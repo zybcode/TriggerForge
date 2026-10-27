@@ -38,9 +38,9 @@ TriggerForge 的核心愿景是打造一个“跑得稳、炸不烂、文档全�
 ### 1. 准予交付的核心功能 (In Scope)
 
 * **现代化源码布局**：采用符合现代 Python 社区最佳实践的标准 `src/` 布局与 `pyproject.toml` 构建配置（基于 Hatch 后端与 PEP 621 标准）。
-* **非阻塞并发事件分发**：主循环（Looper）与监听哨兵（Sentry）协作，利用线程池（ThreadPoolExecutor）实现文件事件的并发分发，绝不阻塞主监控流。
+* **非阻塞并发事件分发**：主循环（Looper）与监听哨兵（Sentry）协作，通过线程安全缓冲队列（`EventBufferQueue`）与按 `concurrency` 配置的工作线程池解耦监听与执行，绝不阻塞主监控流。
 * **动态多虚拟环境支持**：支持在配置中显式指定 `python_path`，允许子进程动态调用完全隔离的外部虚拟环境（Venv），完美兼容不同版本的历史插件。
-* **生产级运维闭环**：提供开箱即用的 Linux Systemd 服务守护配置与基于 `journald` 的可观测性日志流追踪，同时在插件故障时自动抓取二进制 Hexdump 快照进行物化诊断。
+* **生产级运维闭环**：提供开箱即用的 Linux Systemd 服务守护配置与基于 `journald` 的可观测性日志流追踪，同时在插件故障时自动生成结构化 `.panic.json` 诊断报告（含 stdout/stderr 全文）进行物化诊断。
 
 ### 2. 明确排除的功能边界 (Out of Scope)
 

@@ -76,8 +76,8 @@ If you need to run local diagnostic scripts or tools within the context of your 
 # Inspect the Python version within the virtual environment
 hatch run python --version
 
-# Validate your configuration profile against the Pydantic schema assertions
-hatch run triggerforge --check-config config.yaml
+# Validate your configuration profile against the Pydantic schema (no watchers started)
+hatch run triggerforge --config config.yaml --dry-run
 
 ```
 

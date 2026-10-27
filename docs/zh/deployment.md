@@ -83,11 +83,14 @@ journalctl -u triggerforge.service -f -n 100
 
 ### 2. 诊断与排查故障快照
 
-当第三方插件触发超时熔断或未捕获的段错误（Segfault）时，Clerk 模块会将异常上下文与二进制 Hexdump 快照直接刷入错误流。可以使用以下指令快速定向排查错误日志：
+当第三方插件触发超时熔断、返回失败状态或未捕获的段错误（Segfault）时，Clerk 模块会在 `log_dir`（默认 `logs/`）下生成结构化的 `panic_{plugin_name}_{timestamp}.json` 诊断报告，内含目标文件元数据、失败插件与策略参数、环境上下文以及子进程的 `stdout` / `stderr` 全文。可以配合以下指令快速定向排查：
 
 ```bash
+# 查看近期错误级日志（含 panic 报告落盘路径）
 journalctl -u triggerforge.service --priority=err -n 50
 
+# 列出并查看最近一份故障现场报告
+ls -t logs/panic_*.json | head -1 | xargs -r cat
 ```
 
 ---

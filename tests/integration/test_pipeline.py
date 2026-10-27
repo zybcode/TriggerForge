@@ -16,11 +16,14 @@
 
 from __future__ import annotations
 
+import threading
+import time
 from pathlib import Path
 from typing import Dict
 
 from tests.conftest import wait_for_watcher_ready
 from triggerforge.core.clerk.archiver import ClerkArchiver
+from triggerforge.core.looper import TriggerForgeLooper
 from triggerforge.core.runner.plugin_runner import PluginRunner
 from triggerforge.core.sentry.queue import EventBufferQueue
 from triggerforge.core.sentry.watcher import SentryWatcher
@@ -70,3 +73,102 @@ def test_full_pipeline_failure(integration_env: Dict[str, Path]):
 
     final_path = archiver.archive_error(dummy_file, integration_env["error"])
     assert final_path.exists()
+
+
+# ----------------------------------------------------------------------
+# 真实端到端：投递文件必须能触发插件应用（Looper 全链路）
+# ----------------------------------------------------------------------
+def _write_plugin(plugins_root: Path, name: str, source: str) -> None:
+    plugin_dir = plugins_root / name
+    plugin_dir.mkdir(parents=True, exist_ok=True)
+    (plugin_dir / "main.py").write_text(source, encoding="utf-8")
+
+
+def _looper_config(integration_env: Dict[str, Path], plugin_name: str, timeout: int = 10) -> dict:
+    return {
+        "plugin_directory": str(integration_env["plugins"]),
+        "log_dir": str(integration_env["base"] / "logs"),
+        "watch_folders": [
+            {
+                "path": str(integration_env["watch"]),
+                "success_path": str(integration_env["success"]),
+                "error_path": str(integration_env["error"]),
+                "concurrency": 2,
+                "debounce_seconds": 0.3,
+                "strategies": [{"plugin_name": plugin_name, "timeout": timeout}],
+            }
+        ],
+    }
+
+
+def _wait_until(predicate, timeout: float = 15.0) -> bool:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if predicate():
+            return True
+        time.sleep(0.1)
+    return predicate()
+
+
+def test_looper_end_to_end_trigger_success(integration_env: Dict[str, Path]):
+    """投递文件到监控目录后，插件子进程被调用且文件归档到成功目录。"""
+    _write_plugin(
+        integration_env["plugins"],
+        "e2e_ok",
+        "import json, sys\n"
+        "print(json.dumps({'status': 'success', 'file': sys.argv[1]}))\n",
+    )
+
+    looper = TriggerForgeLooper(_looper_config(integration_env, "e2e_ok"))
+    thread = threading.Thread(target=looper.start, daemon=True)
+    thread.start()
+    try:
+        assert _wait_until(lambda: looper.ready, timeout=10), "looper failed to become ready"
+        # 给 watchdog 事件后端一点时间完成挂载后的初始化
+        time.sleep(0.5)
+
+        trigger_file = integration_env["watch"] / "e2e.txt"
+        trigger_file.write_text("data", encoding="utf-8")
+
+        assert _wait_until(
+            lambda: (integration_env["success"] / "e2e.txt").exists()
+        ), "file was never archived to the success zone (pipeline not triggered)"
+        assert not trigger_file.exists()
+        assert list(integration_env["error"].iterdir()) == []
+    finally:
+        looper.stop()
+        thread.join(timeout=5)
+
+
+def test_looper_end_to_end_trigger_failure(integration_env: Dict[str, Path]):
+    """插件失败时文件进入故障隔离区，并生成 panic 诊断报告。"""
+    _write_plugin(
+        integration_env["plugins"],
+        "e2e_bad",
+        "import json, sys\n"
+        "sys.stderr.write('e2e synthetic failure')\n"
+        "print(json.dumps({'status': 'failed', 'error': 'synthetic'}))\n"
+        "raise SystemExit(1)\n",
+    )
+
+    looper = TriggerForgeLooper(_looper_config(integration_env, "e2e_bad"))
+    thread = threading.Thread(target=looper.start, daemon=True)
+    thread.start()
+    try:
+        assert _wait_until(lambda: looper.ready, timeout=10), "looper failed to become ready"
+        # 给 watchdog 事件后端一点时间完成挂载后的初始化
+        time.sleep(0.5)
+
+        trigger_file = integration_env["watch"] / "broken.txt"
+        trigger_file.write_text("bad data", encoding="utf-8")
+
+        assert _wait_until(
+            lambda: (integration_env["error"] / "broken.txt").exists()
+        ), "failed file was never quarantined"
+        assert list(integration_env["success"].iterdir()) == []
+        assert _wait_until(
+            lambda: len(list((integration_env["base"] / "logs").glob("panic_*.json"))) == 1
+        ), "panic report was not generated"
+    finally:
+        looper.stop()
+        thread.join(timeout=5)
