@@ -4,7 +4,7 @@
 # TriggerForge v1.2 开发规划文档
 
 > **版本**：v1.2-Final (已修正)
-> **状态**：已修正（待归档）
+> **状态**：已实现（v1.2.0 已交付，见下方实现对照）
 > **目录**：docs/zh/dev_plan_v1.2.md
 
 ## 1. 概述
@@ -44,6 +44,6 @@
 * **集成测试**: 将 `--check` 模式接入 Git Hooks，并增加自动化脚本模拟配置文件变更与信号发送，确保热加载流程稳定性[cite: 9]。
 
 ---
-*注：本开发规划已符合架构评审要求，待最终归档。参考 [迁移指南](./migration_v1.2.md)。*
+*注：v1.2 已实现交付。实现对照：Schema 双重约束 → `core/schema.py`；配置审计引擎 → `utils/config_manager.py`（CLI 入口 `scripts/config_manager.py` 与 `triggerforge.cli --check`）；热加载 → `engine/core.py`（EngineCore）。参考 [迁移指南](./migration_v1.2.md)。*
 
 ```

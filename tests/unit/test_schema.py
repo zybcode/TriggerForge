@@ -184,3 +184,93 @@ def test_repo_sample_config_is_valid():
         assert config.watch_folders, f"{name} must declare at least one watch folder"
         for folder in config.watch_folders:
             assert folder.strategies, f"{name} strategies must not be empty"
+
+
+# ----------------------------------------------------------------------
+# v1.2：priority 双重约束 / allow_override_timeout / metadata
+# ----------------------------------------------------------------------
+from triggerforge.core.schema import StrategySchema
+
+
+def _strategy(**extra: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {"plugin_name": "p"}
+    base.update(extra)
+    return base
+
+
+def test_priority_defaults_to_standard():
+    strategy = StrategySchema(**_strategy())
+    assert strategy.priority == "standard"
+    assert strategy.allow_override_timeout is False
+
+
+def test_dual_constraint_override_requires_high_priority():
+    with pytest.raises(ValidationError) as exc_info:
+        StrategySchema(**_strategy(allow_override_timeout=True, priority="standard"))
+    assert "priority" in str(exc_info.value)
+
+
+def test_dual_constraint_low_priority_blocked():
+    with pytest.raises(ValidationError):
+        StrategySchema(**_strategy(allow_override_timeout=True, priority="low"))
+
+
+def test_dual_constraint_high_priority_exempt_allowed():
+    strategy = StrategySchema(**_strategy(allow_override_timeout=True, priority="high"))
+    assert strategy.allow_override_timeout is True
+    assert strategy.priority == "high"
+
+
+def test_invalid_priority_rejected():
+    with pytest.raises(ValidationError):
+        StrategySchema(**_strategy(priority="urgent"))
+
+
+def test_metadata_slot_forward_compatible():
+    strategy = StrategySchema(
+        **_strategy(metadata={"signature": "sha256:abc", "license_hash": "h"})
+    )
+    assert strategy.metadata["signature"] == "sha256:abc"
+
+
+def test_nested_strategy_object_migration():
+    """v1.2 新标准：strategies[].strategy 嵌套对象。"""
+    config = TriggerForgeConfigSchema(
+        watch_folders=[
+            {
+                "path": "./w",
+                "success_path": "./s",
+                "error_path": "./e",
+                "strategies": [
+                    {
+                        "plugin_name": "p",
+                        "strategy": {
+                            "timeout": 90,
+                            "priority": "high",
+                            "allow_override_timeout": True,
+                        },
+                    }
+                ],
+            }
+        ]
+    )
+    strategy = config.watch_folders[0].strategies[0]
+    assert strategy.timeout == 90
+    assert strategy.priority == "high"
+    assert strategy.allow_override_timeout is True
+
+
+def test_global_timeout_deprecated_maps_to_max_execution_timeout():
+    with pytest.warns(DeprecationWarning, match="max_execution_timeout"):
+        config = TriggerForgeConfigSchema(
+            watch_folders=[],
+            plugin_directory="./plugins",
+            timeout=120,
+        )
+    assert config.max_execution_timeout == 120
+    assert "timeout" not in config.model_dump()
+
+
+def test_max_execution_timeout_direct_declaration():
+    config = TriggerForgeConfigSchema(watch_folders=[], max_execution_timeout=300)
+    assert config.max_execution_timeout == 300

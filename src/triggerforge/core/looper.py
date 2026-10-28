@@ -198,6 +198,31 @@ class TriggerForgeLooper:
                 except Exception:
                     pass
 
+    def _effective_timeout(self, strategy: dict[str, Any]) -> int:
+        """计算策略生效超时（v1.2 资源防锁死：全局硬上限 + 豁免）。
+
+        策略 timeout 超过 max_execution_timeout 时被钳制到硬上限；
+        仅 priority="high" 且 allow_override_timeout=true 的策略可豁免。
+        """
+        timeout = int(strategy.get("timeout", 30))
+        cap = self.config.get("max_execution_timeout")
+        if cap is None:
+            return timeout
+        cap = int(cap)
+        exempt = strategy.get("priority") == "high" and strategy.get(
+            "allow_override_timeout", False
+        )
+        if exempt:
+            return timeout
+        if timeout > cap:
+            logger.warning(
+                f"Strategy '{strategy.get('plugin_name')}' timeout {timeout}s "
+                f"exceeds max_execution_timeout {cap}s, clamped "
+                "(exempt requires priority='high' + allow_override_timeout)."
+            )
+            return cap
+        return timeout
+
     def _process_file(
         self,
         file_path: Path,
@@ -229,7 +254,7 @@ class TriggerForgeLooper:
                 result = runner.run(
                     file_path=file_path,
                     params=params,
-                    timeout=int(strategy.get("timeout", 30)),
+                    timeout=self._effective_timeout(strategy),
                     python_path=strategy.get("python_path"),
                 )
             except Exception as exc:

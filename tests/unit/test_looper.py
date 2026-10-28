@@ -230,3 +230,43 @@ def test_looper_wires_buffer_queue_and_workers(pipeline_env):
         thread.join(timeout=5)
 
     assert looper.is_running is False
+
+
+# ----------------------------------------------------------------------
+# v1.2：max_execution_timeout 硬上限与豁免（资源防锁死）
+# ----------------------------------------------------------------------
+def test_effective_timeout_clamped_without_exemption():
+    """无豁免的策略超时被钳制到全局硬上限。"""
+    looper = TriggerForgeLooper({"max_execution_timeout": 60})
+    strategy = {"plugin_name": "p", "timeout": 999}
+    assert looper._effective_timeout(strategy) == 60
+
+
+def test_effective_timeout_exempt_for_high_priority_override():
+    """priority=high + allow_override_timeout=true 可突破硬上限。"""
+    looper = TriggerForgeLooper({"max_execution_timeout": 60})
+    strategy = {
+        "plugin_name": "p",
+        "timeout": 999,
+        "priority": "high",
+        "allow_override_timeout": True,
+    }
+    assert looper._effective_timeout(strategy) == 999
+
+
+def test_effective_timeout_standard_priority_cannot_override():
+    """standard 级别即使误配 allow_override_timeout 也不豁免。"""
+    looper = TriggerForgeLooper({"max_execution_timeout": 60})
+    strategy = {
+        "plugin_name": "p",
+        "timeout": 999,
+        "priority": "standard",
+        "allow_override_timeout": True,  # Schema 层已拦截，此处验证运行时兜底
+    }
+    assert looper._effective_timeout(strategy) == 60
+
+
+def test_effective_timeout_no_cap_declared():
+    """未声明硬上限时不钳制。"""
+    looper = TriggerForgeLooper({})
+    assert looper._effective_timeout({"plugin_name": "p", "timeout": 999}) == 999

@@ -8,6 +8,11 @@ plugin_directory: "./plugins"
 # 全局默认文件防抖窗口（秒），可被每个监控目录单独覆盖
 debounce_seconds: 1.0
 
+# v1.2：全局执行超时硬上限（安全底线）。
+# 策略 timeout 超过该值时被运行时钳制，除非策略满足
+# priority="high" + allow_override_timeout=true 豁免。
+max_execution_timeout: 300
+
 # 监控目录策略列表（支持配置多个独立的监控目录）
 watch_folders:
   - # 1. 引擎实施事件监听的源目标目录路径
@@ -27,23 +32,54 @@ watch_folders:
     
     # 6. 该目录事件触发后，按顺序串行执行的插件策略流水线
     strategies:
-      # 策略 1：调用现代压缩插件，限时 15 秒熔断
+      # 策略 1（v1.2 嵌套写法）：核心高优策略，允许突破全局超时上限
       - plugin_name: "compress_plugin"
         plugin_version: "1.0.0"
-        # 15秒硬超时防锁死
-        timeout: 15                     
-        
+        strategy:
+          timeout: 15                    # 15秒硬超时防锁死
+          priority: "high"               # 仅 high 支持 allow_override_timeout
+          allow_override_timeout: true   # 必须与 priority: high 组合使用
         params:
           level: "high"
           archive_type: "tar.gz"
 
-      # 策略 2：调用历史遗留数据解析插件，挂载独立的虚拟环境运行
+      # 策略 2：普通标准策略，挂载独立的虚拟环境运行
       - plugin_name: "legacy_parser_plugin"
         plugin_version: "0.8.2"
         # 核心亮点：打破依赖冲突，子进程动态切换至老旧的独立隔离环境运行
-        python_path: "/opt/venv/legacy_env/bin/python" 
-        # 30秒超时熔断  
-        timeout: 30                     
+        python_path: "/opt/venv/legacy_env/bin/python"
+        strategy:
+          timeout: 30
+          priority: "standard"           # 默认值，不可开启超时覆盖
         params:
           legacy_mode: true
           encoding: "gbk"
+  # ---------------------------------------------------------------
+  # 示例二：文档自动生成流水线（docgen 插件）
+  # 依赖：pip install python-docx docxtpl（插件子进程解释器需可导入）
+  # 功能规范：《文档自动生成系统部署方案 V1.0-R-03》
+  #   - 投递 TXT 配置档（INI 风格，编码回退 utf-8-sig → gbk → gb18030）
+  #   - 按段落读取 Word 模板，docxtpl {{key}} 占位符渲染（V-4）
+  #   - 多条目合并输出（sections==1），三态归档 success/partial/failed
+  #   - 产物：成功统计.txt / 错误原因.txt（写入工程目录）
+  # ---------------------------------------------------------------
+  - path: "./storage/docgen_watch"
+    success_path: "./storage/docgen_success"
+    error_path: "./storage/docgen_error"
+    concurrency: 1
+    debounce_seconds: 2.0
+    strategies:
+      - plugin_name: "docgen"
+        plugin_version: "1.0.0"
+        # 模板渲染可能较慢，超时适当放大
+        strategy:
+          timeout: 120
+        params:
+          # 模板根目录：TXT 的 [root] 模板目录= 指定其下子目录
+          templates_root: "./templates"
+          # 可选：模板类型 → {"模板目录": 根目录} 的全局 JSON 映射
+          # global_config_path: "./config/global_config.json"
+          # 工程输出根目录（默认为 TXT 所在目录）
+          output_root: "./storage/docgen_success"
+          # 未替换占位符检测的豁免键（可选）
+          # min_fee: "min_fee"

@@ -16,7 +16,8 @@
 
 # Minimal CLI entrypoint for tests.
 
-# Supports --help, --version, --config and --dry-run (schema validation).
+# Supports --help, --version, --config, --dry-run (schema validation)
+# and --check (v1.2 configuration audit with exit codes 0/1/2/3).
 
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ import yaml  # type: ignore
 from triggerforge.core.looper import run_looper
 from triggerforge.core.schema import TriggerForgeConfigSchema
 
-VERSION = "0.1.0"
+VERSION = "1.2.0"
 
 
 def parse_args(argv=None):
@@ -39,6 +40,11 @@ def parse_args(argv=None):
     parser.add_argument("--config", type=str, help="Path to configuration YAML file")
     parser.add_argument(
         "--dry-run", action="store_true", help="Validate config and exit"
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Run the v1.2 configuration audit (exit codes 0/1/2/3)",
     )
     return parser.parse_args(argv)
 
@@ -51,6 +57,12 @@ def run_cli_logic(args) -> int:
     config_path = getattr(args, "config", None)
     if not config_path:
         raise FileNotFoundError("Missing required --config path")
+
+    # v1.2：--check 接入配置审计引擎，退出码与 ForgeConfigManager 对齐
+    if getattr(args, "check", False):
+        from triggerforge.utils.config_manager import run_check
+
+        return run_check(config_path)
 
     config_file = Path(config_path)
     if not config_file.exists():

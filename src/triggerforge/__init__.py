@@ -20,7 +20,7 @@
 # normally by Python when the src directory is present on sys.path.
 
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 import importlib
 import time

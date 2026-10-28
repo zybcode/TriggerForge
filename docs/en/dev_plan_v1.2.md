@@ -1,7 +1,7 @@
 # TriggerForge v1.2 Development Plan
 
 > **Version**: v1.2-Final (Approved)
-> **Status**: In Development
+> **Status**: Implemented (v1.2.0 delivered)
 > **Path**: docs/en/dev_plan_v1.2.md
 
 ## 1. Overview

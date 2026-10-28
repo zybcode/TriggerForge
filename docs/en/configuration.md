@@ -1,6 +1,6 @@
 # ⚙️ TriggerForge Configuration Specification
 
-> **Version**: v1.1-PRO
+> **Version**: v1.2-Final
 > **Source of truth**: `src/triggerforge/core/schema.py`
 > **Notice**: Field definitions on this page mirror the Pydantic models in `schema.py`. Keep them in sync when the schema changes.
 
@@ -17,6 +17,9 @@ The TriggerForge main configuration file uses the standard YAML format. Core par
 | `watch_folders` | `List[WatchFolderSchema]` | none | **(Required)** | List of monitored directory strategies. Multiple independent directories are supported. |
 | `plugin_directory` | `str` | `"./plugins"` | Optional | Plugin root directory. The engine resolves `{plugin_name}/main.py` inside it. |
 | `debounce_seconds` | `float` | `1.0` | Optional | Global default write-debounce window (seconds), must be > 0. Overridable per watch folder. |
+| `max_execution_timeout` | `Optional[int]` | `None` | Optional (v1.2) | Global hard execution-timeout ceiling (safety baseline). A strategy `timeout` exceeding it is clamped at runtime unless the strategy holds the `priority="high"` + `allow_override_timeout=true` exemption. |
+
+> **v1.2 deprecation**: the legacy global `timeout` key is auto-mapped to `max_execution_timeout` with a `DeprecationWarning`; removal is planned for v1.4. See the [Migration Guide](./migration_v1.2.md).
 
 ### 2. `WatchFolderSchema` (Directory Monitor Configuration Object)
 
@@ -35,9 +38,13 @@ The TriggerForge main configuration file uses the standard YAML format. Core par
 | --- | --- | --- | --- | --- |
 | `plugin_name` | `str` | none | **(Required)** | Plugin directory name; resolves `{plugin_directory}/{plugin_name}/main.py`. |
 | `plugin_version` | `str` | `"0.0.0"` | Optional | Plugin version marker used for runtime validation and auditing. |
-| `timeout` | `int` | `30` | Optional | Hard timeout (seconds) for the plugin subprocess, must be > 0. |
+| `timeout` | `int` | `30` | Optional | Hard timeout (seconds) for the plugin subprocess, must be > 0. The legacy flat form is deprecated; migrate to the `strategy.timeout` nested object (flat form removal planned for v1.4). |
 | `params` | `Dict[str, Any]` | `{}` | Optional | Dynamic custom parameters injected into the plugin subprocess as JSON. |
 | `python_path` | `Optional[str]` | `None` | Optional | Path to an isolated interpreter (virtualenv). Falls back to the current interpreter if missing. |
+| `strategy` | `Optional[dict]` | `None` | Optional (v1.2) | **New standard nested object**: may carry `timeout` / `priority` / `allow_override_timeout`; nested keys take precedence over flat fields. |
+| `priority` | `Literal["high","standard","low"]` | `"standard"` | Optional (v1.2) | Strategy priority enum. **Only `high` supports timeout override**; `standard` and `low` do not. |
+| `allow_override_timeout` | `bool` | `false` | Optional (v1.2) | Timeout-override exemption switch. **Dual constraint**: setting it to `true` requires `priority="high"` simultaneously, otherwise pre-flight raises `ValueError` and blocks engine start (resource anti-lockout). |
+| `metadata` | `Dict[str, Any]` | `{}` | Optional (v1.2) | Commercial extension slot (digital signature / License Hash / customer authorization). Placeholder-only in v1.2 open-source; ignored during startup validation for forward compatibility. |
 
 ---
 
@@ -47,7 +54,7 @@ Below is a production-grade configuration sample. Copy it to create your local `
 
 ```yaml
 # =================================================================
-# TriggerForge Production Configuration Blueprint
+# TriggerForge Production Configuration Blueprint (v1.2)
 # =================================================================
 
 # Plugin root: the engine resolves {plugin_directory}/{plugin_name}/main.py
@@ -55,6 +62,9 @@ plugin_directory: "./plugins"
 
 # Global default debounce window (seconds); overridable per watch folder
 debounce_seconds: 1.0
+
+# Global hard execution-timeout ceiling (safety baseline, v1.2)
+max_execution_timeout: 300
 
 watch_folders:
   - path: "./storage/watch_folder"        # dropping a file here triggers the pipeline
@@ -64,19 +74,24 @@ watch_folders:
     debounce_seconds: 1.0                 # directory-specific debounce window
 
     strategies:
-      # Strategy 1: modern compression plugin with a 15s hard timeout
+      # Strategy 1 (v1.2 nested form): high-priority core, may exceed the global cap
       - plugin_name: "compress_plugin"
         plugin_version: "1.0.0"
-        timeout: 15
+        strategy:
+          timeout: 15
+          priority: "high"                # only "high" supports allow_override_timeout
+          allow_override_timeout: true    # must be combined with priority: high
         params:
           level: "high"
           archive_type: "tar.gz"
 
-      # Strategy 2: legacy parser running inside an isolated virtualenv
+      # Strategy 2: standard-priority parser running inside an isolated virtualenv
       - plugin_name: "legacy_parser_plugin"
         plugin_version: "0.8.2"
         python_path: "/opt/venv/legacy_env/bin/python"
-        timeout: 30
+        strategy:
+          timeout: 30
+          priority: "standard"            # default; no timeout override allowed
         params:
           legacy_mode: true
           encoding: "gbk"
@@ -89,4 +104,6 @@ watch_folders:
 1. **Event path**: file written into the watched directory → debounce window waits for the write to finish → event enters the buffer queue → worker thread consumes it → `strategies` run sequentially.
 2. **Short-circuit**: if any strategy fails, remaining strategies are skipped and the file goes to the error zone.
 3. **Archiving**: all strategies succeeded → `success_path`; any failure → a `.panic.json` diagnostic report is written and the file is moved to `error_path`.
-4. **Validation**: config is validated at startup via `TriggerForgeConfigSchema`; use `--dry-run` to validate without starting watchers.
+4. **Validation**: config is validated at startup via `TriggerForgeConfigSchema`; use `--dry-run` to validate without starting watchers, or `--check` to run the full v1.2 compliance audit (exit codes 0/1/2/3).
+5. **Resource anti-lockout (v1.2)**: a strategy `timeout` exceeding `max_execution_timeout` is clamped to the ceiling at runtime; only strategies with `priority="high"` and `allow_override_timeout=true` are exempt.
+6. **Hot reload (v1.2)**: send `SIGHUP` to the engine process to trigger config hot reload; the new config is fully audited by `ForgeConfigManager` first — on failure the running config is kept unchanged and an alert is logged, on success the config set is atomically swapped ("validate-then-replace") with a before/after audit summary.
