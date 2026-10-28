@@ -84,7 +84,9 @@ def _write_plugin(plugins_root: Path, name: str, source: str) -> None:
     (plugin_dir / "main.py").write_text(source, encoding="utf-8")
 
 
-def _looper_config(integration_env: Dict[str, Path], plugin_name: str, timeout: int = 10) -> dict:
+def _looper_config(
+    integration_env: Dict[str, Path], plugin_name: str, timeout: int = 10
+) -> dict:
     return {
         "plugin_directory": str(integration_env["plugins"]),
         "log_dir": str(integration_env["base"] / "logs"),
@@ -123,7 +125,9 @@ def test_looper_end_to_end_trigger_success(integration_env: Dict[str, Path]):
     thread = threading.Thread(target=looper.start, daemon=True)
     thread.start()
     try:
-        assert _wait_until(lambda: looper.ready, timeout=10), "looper failed to become ready"
+        assert _wait_until(
+            lambda: looper.ready, timeout=10
+        ), "looper failed to become ready"
         # 给 watchdog 事件后端一点时间完成挂载后的初始化
         time.sleep(0.5)
 
@@ -155,7 +159,9 @@ def test_looper_end_to_end_trigger_failure(integration_env: Dict[str, Path]):
     thread = threading.Thread(target=looper.start, daemon=True)
     thread.start()
     try:
-        assert _wait_until(lambda: looper.ready, timeout=10), "looper failed to become ready"
+        assert _wait_until(
+            lambda: looper.ready, timeout=10
+        ), "looper failed to become ready"
         # 给 watchdog 事件后端一点时间完成挂载后的初始化
         time.sleep(0.5)
 
@@ -167,7 +173,8 @@ def test_looper_end_to_end_trigger_failure(integration_env: Dict[str, Path]):
         ), "failed file was never quarantined"
         assert list(integration_env["success"].iterdir()) == []
         assert _wait_until(
-            lambda: len(list((integration_env["base"] / "logs").glob("panic_*.json"))) == 1
+            lambda: len(list((integration_env["base"] / "logs").glob("panic_*.json")))
+            == 1
         ), "panic report was not generated"
     finally:
         looper.stop()

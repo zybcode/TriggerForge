@@ -175,12 +175,16 @@ class PluginRunner:
                 "status": "failed",
                 "error": f"Plugin execution timed out after {timeout}s",
                 "exit_code": None,
-                "stdout": (e.stdout or b"").decode(errors="ignore")
-                if isinstance(e.stdout, bytes)
-                else str(e.stdout or ""),
-                "stderr": (e.stderr or b"").decode(errors="ignore")
-                if isinstance(e.stderr, bytes)
-                else str(e.stderr or ""),
+                "stdout": (
+                    (e.stdout or b"").decode(errors="ignore")
+                    if isinstance(e.stdout, bytes)
+                    else str(e.stdout or "")
+                ),
+                "stderr": (
+                    (e.stderr or b"").decode(errors="ignore")
+                    if isinstance(e.stderr, bytes)
+                    else str(e.stderr or "")
+                ),
             }
         except json.JSONDecodeError as e:
             return {

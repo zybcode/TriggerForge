@@ -50,7 +50,9 @@ def target_file(tmp_path: Path) -> Path:
     return payload
 
 
-def test_runner_passes_target_file_and_params(plugin_workspace: Path, target_file: Path):
+def test_runner_passes_target_file_and_params(
+    plugin_workspace: Path, target_file: Path
+):
     """插件应能从 argv[1] 拿到目标文件，从 argv[2] 与环境变量拿到 JSON 参数。"""
     _write_plugin(
         plugin_workspace,
@@ -79,7 +81,9 @@ def test_runner_passes_target_file_and_params(plugin_workspace: Path, target_fil
     assert "stdout" in result
 
 
-def test_runner_without_params_keeps_argv_compatible(plugin_workspace: Path, target_file: Path):
+def test_runner_without_params_keeps_argv_compatible(
+    plugin_workspace: Path, target_file: Path
+):
     """未配置 params 时不应追加 argv[2]，保持向后兼容。"""
     _write_plugin(
         plugin_workspace,
@@ -100,9 +104,7 @@ def test_runner_non_zero_exit_is_failure(plugin_workspace: Path, target_file: Pa
     _write_plugin(
         plugin_workspace,
         "boom_plugin",
-        "import sys\n"
-        "sys.stderr.write('kernel panic')\n"
-        "raise SystemExit(3)\n",
+        "import sys\n" "sys.stderr.write('kernel panic')\n" "raise SystemExit(3)\n",
     )
 
     runner = PluginRunner(plugin_name="boom_plugin", plugins_root=plugin_workspace)
@@ -113,7 +115,9 @@ def test_runner_non_zero_exit_is_failure(plugin_workspace: Path, target_file: Pa
     assert "kernel panic" in result["error"]
 
 
-def test_runner_invalid_json_output_is_failure(plugin_workspace: Path, target_file: Path):
+def test_runner_invalid_json_output_is_failure(
+    plugin_workspace: Path, target_file: Path
+):
     """stdout 不是合法 JSON 时应判定为失败（避免误判成功）。"""
     _write_plugin(
         plugin_workspace,
@@ -133,8 +137,7 @@ def test_runner_timeout_is_failure(plugin_workspace: Path, target_file: Path):
     _write_plugin(
         plugin_workspace,
         "sleepy_plugin",
-        "import time\n"
-        "time.sleep(5)\n",
+        "import time\n" "time.sleep(5)\n",
     )
 
     runner = PluginRunner(plugin_name="sleepy_plugin", plugins_root=plugin_workspace)
@@ -144,7 +147,9 @@ def test_runner_timeout_is_failure(plugin_workspace: Path, target_file: Path):
     assert "timed out" in result["error"]
 
 
-def test_runner_invalid_python_path_falls_back(plugin_workspace: Path, target_file: Path):
+def test_runner_invalid_python_path_falls_back(
+    plugin_workspace: Path, target_file: Path
+):
     """python_path 指向不存在的解释器时应告警并回退到当前解释器。"""
     _write_plugin(
         plugin_workspace,
@@ -153,7 +158,9 @@ def test_runner_invalid_python_path_falls_back(plugin_workspace: Path, target_fi
     )
 
     runner = PluginRunner(plugin_name="fallback_plugin", plugins_root=plugin_workspace)
-    result = runner.run(file_path=target_file, python_path="/nonexistent/venv/bin/python")
+    result = runner.run(
+        file_path=target_file, python_path="/nonexistent/venv/bin/python"
+    )
 
     assert result["status"] == "success"
 

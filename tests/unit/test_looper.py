@@ -120,9 +120,7 @@ def _make_looper(env: dict, strategies, concurrency: int = 1) -> TriggerForgeLoo
 def test_process_file_success_archives_to_success_zone(pipeline_env):
     """插件执行成功时，文件应被移动到成功归档目录。"""
     _write_plugin(pipeline_env["plugins"], "ok_plugin", OK_PLUGIN)
-    looper = _make_looper(
-        pipeline_env, [{"plugin_name": "ok_plugin", "timeout": 10}]
-    )
+    looper = _make_looper(pipeline_env, [{"plugin_name": "ok_plugin", "timeout": 10}])
 
     target = pipeline_env["watch"] / "payload.txt"
     target.write_text("data", encoding="utf-8")
@@ -142,9 +140,7 @@ def test_process_file_success_archives_to_success_zone(pipeline_env):
 def test_process_file_failure_quarantines_and_dumps_panic(pipeline_env):
     """插件失败时应生成 panic 报告并将文件移动至故障隔离目录。"""
     _write_plugin(pipeline_env["plugins"], "fail_plugin", FAIL_PLUGIN)
-    looper = _make_looper(
-        pipeline_env, [{"plugin_name": "fail_plugin", "timeout": 10}]
-    )
+    looper = _make_looper(pipeline_env, [{"plugin_name": "fail_plugin", "timeout": 10}])
 
     target = pipeline_env["watch"] / "bad.txt"
     target.write_text("bad data", encoding="utf-8")
