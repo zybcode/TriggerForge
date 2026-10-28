@@ -19,7 +19,6 @@ from __future__ import annotations
 import threading
 import time
 from pathlib import Path
-from typing import Dict
 
 from tests.conftest import wait_for_watcher_ready
 from triggerforge.core.clerk.archiver import ClerkArchiver
@@ -29,7 +28,7 @@ from triggerforge.core.sentry.queue import EventBufferQueue
 from triggerforge.core.sentry.watcher import SentryWatcher
 
 
-def test_full_pipeline_success(integration_env: Dict[str, Path]):
+def test_full_pipeline_success(integration_env: dict[str, Path]):
     """完整端到端成功链路测试。"""
     watch_dir = integration_env["watch"]
     success_dir = integration_env["success"]
@@ -64,7 +63,7 @@ def test_full_pipeline_success(integration_env: Dict[str, Path]):
     watcher.stop()
 
 
-def test_full_pipeline_failure(integration_env: Dict[str, Path]):
+def test_full_pipeline_failure(integration_env: dict[str, Path]):
     """插件执行失败后的错误归档测试。"""
     archiver = ClerkArchiver()
     # 模拟文件被归档至错误目录
@@ -85,7 +84,7 @@ def _write_plugin(plugins_root: Path, name: str, source: str) -> None:
 
 
 def _looper_config(
-    integration_env: Dict[str, Path], plugin_name: str, timeout: int = 10
+    integration_env: dict[str, Path], plugin_name: str, timeout: int = 10
 ) -> dict:
     return {
         "plugin_directory": str(integration_env["plugins"]),
@@ -112,7 +111,7 @@ def _wait_until(predicate, timeout: float = 15.0) -> bool:
     return predicate()
 
 
-def test_looper_end_to_end_trigger_success(integration_env: Dict[str, Path]):
+def test_looper_end_to_end_trigger_success(integration_env: dict[str, Path]):
     """投递文件到监控目录后，插件子进程被调用且文件归档到成功目录。"""
     _write_plugin(
         integration_env["plugins"],
@@ -144,7 +143,7 @@ def test_looper_end_to_end_trigger_success(integration_env: Dict[str, Path]):
         thread.join(timeout=5)
 
 
-def test_looper_end_to_end_trigger_failure(integration_env: Dict[str, Path]):
+def test_looper_end_to_end_trigger_failure(integration_env: dict[str, Path]):
     """插件失败时文件进入故障隔离区，并生成 panic 诊断报告。"""
     _write_plugin(
         integration_env["plugins"],

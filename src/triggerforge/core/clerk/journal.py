@@ -27,7 +27,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # 初始化配置默认 Logger，方便在没有 Systemd 环境下本地调试
 logger = logging.getLogger("triggerforge.clerk.journal")
@@ -39,7 +39,7 @@ class ClerkJournal:
     负责捕获并格式化插件子进程的 stdout/stderr 标准流，并在进程崩溃或硬超时熔断时保存现场诊断数据[cite: 1, 2]。
     """
 
-    def __init__(self, log_dir: Optional[Path] = None):
+    def __init__(self, log_dir: Path | None = None):
         """
         Args:
             log_dir: 诊断报告（Panic Dump）保存的目标根目录。若为 None，默认保存在项目根目录下的 logs/ 目录。
@@ -76,11 +76,11 @@ class ClerkJournal:
         self,
         file_path: Path,
         plugin_name: str,
-        exit_code: Optional[int],
+        exit_code: int | None,
         error_message: str,
         stdout: str,
         stderr: str,
-        strategy_params: Dict[str, Any],
+        strategy_params: dict[str, Any],
     ) -> Path:
         """
         当插件遭遇硬超时、段错误或非零状态退出崩溃时，Clerk 自动导出结构化的故障现场诊断报告[cite: 1, 2]。

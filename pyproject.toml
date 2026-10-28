@@ -85,9 +85,18 @@ exclude = '''
   | README\.md
   | docs
 )/
+'''
 
+# Ruff 代码检查配置
 [tool.ruff]
 # 排除特定文件或目录
-lint.extend-select = ["I"]
 extend-exclude = ["README.md"]
-'''
+
+[tool.ruff.lint]
+extend-select = ["I"]
+# 以下规则与本引擎的故障隔离设计相冲突，属有意为之：
+# - BLE001：Looper 工作线程、PluginRunner 子进程封装、Clerk 归档兜底等
+#   边界处必须宽泛捕获 Exception，防止单个文件/插件故障击穿守护进程；
+# - S110/S112：队列轮询、Timer 取消、task_done 等高频路径上的静默忽略，
+#   逐次记日志反而会造成日志洪泛。
+ignore = ["BLE001", "S110", "S112"]

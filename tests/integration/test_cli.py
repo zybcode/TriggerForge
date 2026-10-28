@@ -27,6 +27,7 @@ def test_cli_version_flag():
         [sys.executable, "-m", "triggerforge.cli", "--version"],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0
     assert re.search(r"\d+\.\d+\.\d+", result.stdout) is not None
@@ -48,6 +49,7 @@ def test_cli_dry_run(integration_env: dict):
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0
     assert "Dry run" in result.stdout
@@ -59,6 +61,7 @@ def test_cli_invalid_config():
         [sys.executable, "-m", "triggerforge.cli", "--config", "non_existent.yaml"],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 2
     assert "error" in result.stderr.lower()

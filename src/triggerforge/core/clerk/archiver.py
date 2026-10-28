@@ -25,7 +25,6 @@ from __future__ import annotations
 import shutil
 import time
 from pathlib import Path
-from typing import Union
 
 
 class ClerkArchiver:
@@ -37,9 +36,7 @@ class ClerkArchiver:
     def __init__(self):
         pass
 
-    def archive_success(
-        self, file_path: Union[str, Path], success_path: Union[str, Path]
-    ) -> Path:
+    def archive_success(self, file_path: str | Path, success_path: str | Path) -> Path:
         """
         将文件归档至成功归档目录[cite: 1, 2]。
 
@@ -52,9 +49,7 @@ class ClerkArchiver:
         """
         return self._safe_move(Path(file_path), Path(success_path))
 
-    def archive_error(
-        self, file_path: Union[str, Path], error_path: Union[str, Path]
-    ) -> Path:
+    def archive_error(self, file_path: str | Path, error_path: str | Path) -> Path:
         """
         将文件移动至失败/故障隔离目录（Quarantine）[cite: 1, 2]。
 
@@ -93,6 +88,6 @@ class ClerkArchiver:
             shutil.move(str(src), str(target_path))
             return target_path
         except Exception as e:
-            raise IOError(
-                f"Failed to atomically archive file from '{src}' to '{target_path}' due to: {str(e)}"
+            raise OSError(
+                f"Failed to atomically archive file from '{src}' to '{target_path}' due to: {e!s}"
             )

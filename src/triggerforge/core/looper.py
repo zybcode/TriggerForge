@@ -20,7 +20,7 @@ import logging
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from triggerforge.core.clerk.archiver import ClerkArchiver
 from triggerforge.core.clerk.journal import ClerkJournal
@@ -43,11 +43,11 @@ class TriggerForgeLooper:
               -> 任一失败: ClerkJournal.dump_panic_report + archive_error
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config or {}
-        self.watchers: List[SentryWatcher] = []
-        self.queues: List[EventBufferQueue] = []
-        self.workers: List[threading.Thread] = []
+        self.watchers: list[SentryWatcher] = []
+        self.queues: list[EventBufferQueue] = []
+        self.workers: list[threading.Thread] = []
         self.is_running = False
         # True 表示所有 watcher 与 worker 均已就绪（可安全投递文件）
         self._ready = False
@@ -57,12 +57,12 @@ class TriggerForgeLooper:
         # 诊断报告目录（懒初始化，避免在未运行时产生副作用）
         self._log_dir = self.config.get("log_dir", "logs")
         self._archiver = ClerkArchiver()
-        self._journal: Optional[ClerkJournal] = None
+        self._journal: ClerkJournal | None = None
 
     # ------------------------------------------------------------------
     # 配置解析
     # ------------------------------------------------------------------
-    def _resolve_watch_configs(self) -> List[Dict[str, Any]]:
+    def _resolve_watch_configs(self) -> list[dict[str, Any]]:
         watch_folders_config = self.config.get("watch_folders", [])
         if watch_folders_config:
             return list(watch_folders_config)
@@ -172,7 +172,7 @@ class TriggerForgeLooper:
     # ------------------------------------------------------------------
     # 事件消费与插件管道
     # ------------------------------------------------------------------
-    def _worker_loop(self, folder_config: Dict[str, Any], queue: EventBufferQueue):
+    def _worker_loop(self, folder_config: dict[str, Any], queue: EventBufferQueue):
         """工作线程主循环：从缓冲队列消费文件事件并驱动插件流水线。"""
         success_path = folder_config.get("success_path")
         error_path = folder_config.get("error_path")
@@ -189,9 +189,9 @@ class TriggerForgeLooper:
 
             try:
                 self._process_file(file_path, strategies, success_path, error_path)
-            except Exception as exc:
+            except Exception:
                 # 故障隔离：任何未预期的异常都不允许击穿工作线程
-                logger.exception(f"Unhandled pipeline error for '{file_path}': {exc}")
+                logger.exception(f"Unhandled pipeline error for '{file_path}'")
             finally:
                 try:
                     queue.task_done()
@@ -201,9 +201,9 @@ class TriggerForgeLooper:
     def _process_file(
         self,
         file_path: Path,
-        strategies: List[Dict[str, Any]],
-        success_path: Optional[str],
-        error_path: Optional[str],
+        strategies: list[dict[str, Any]],
+        success_path: str | None,
+        error_path: str | None,
     ) -> None:
         """对单个触发文件按顺序执行插件策略流水线，并归档。"""
         file_path = Path(file_path)
@@ -272,6 +272,6 @@ class TriggerForgeLooper:
             logger.error(f"Failed to archive file '{file_path}': {exc}")
 
 
-def run_looper(config: Dict[str, Any]):
+def run_looper(config: dict[str, Any]):
     looper = TriggerForgeLooper(config)
     looper.start()

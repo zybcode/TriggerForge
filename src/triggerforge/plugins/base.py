@@ -33,4 +33,3 @@ class BasePlugin(ABC):
         Returns:
             bool: 成功返回 True，失败返回 False
         """
-        pass

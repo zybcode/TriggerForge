@@ -36,9 +36,11 @@ def test_looper_lifecycle():
         looper = TriggerForgeLooper(mock_config)
 
         # 1. 模拟 sleep 抛出异常
-        with patch("triggerforge.core.looper.time.sleep", side_effect=InterruptedError):
-            with pytest.raises(InterruptedError):
-                looper.start()
+        with (
+            patch("triggerforge.core.looper.time.sleep", side_effect=InterruptedError),
+            pytest.raises(InterruptedError),
+        ):
+            looper.start()
 
         # 2. 无论 looper.start 内部是否处理了异常，我们在此显式清理
         looper.stop()

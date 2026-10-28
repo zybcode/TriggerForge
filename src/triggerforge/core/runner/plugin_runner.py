@@ -22,7 +22,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ def _write_default_plugin(plugin_dir: Path, plugin_name: str) -> Path:
 
 class PluginRunner:
     def __init__(
-        self, plugin_name: str, plugins_root: Path, plugin_version: Optional[str] = None
+        self, plugin_name: str, plugins_root: Path, plugin_version: str | None = None
     ):
         """
         初始化插件运行器。
@@ -84,10 +84,10 @@ class PluginRunner:
     def run(
         self,
         file_path: Path,
-        params: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         timeout: int = 30,
-        python_path: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        python_path: str | None = None,
+    ) -> dict[str, Any]:
         """
         执行插件逻辑。
 
@@ -136,13 +136,14 @@ class PluginRunner:
             env["TRIGGERFORGE_PARAMS"] = json.dumps(params, ensure_ascii=False)
 
         try:
-            # 执行插件并获取输出
+            # 执行插件并获取输出（退出码由下方逻辑自行判定，故显式 check=False）
             process = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
                 timeout=timeout,
                 env=env,
+                check=False,
             )
 
             if process.returncode != 0:
@@ -155,7 +156,7 @@ class PluginRunner:
                 }
 
             # 解析插件输出 (插件应输出 JSON 格式)，并附加诊断元数据
-            result: Dict[str, Any] = json.loads(process.stdout)
+            result: dict[str, Any] = json.loads(process.stdout)
             if isinstance(result, dict):
                 result.setdefault("stdout", process.stdout)
                 result["stderr"] = process.stderr

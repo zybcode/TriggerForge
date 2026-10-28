@@ -17,14 +17,14 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Generator
 from pathlib import Path
-from typing import Dict, Generator
 
 import pytest
 
 
 @pytest.fixture
-def integration_env(tmp_path: Path) -> Generator[Dict[str, Path], None, None]:
+def integration_env(tmp_path: Path) -> Generator[dict[str, Path], None, None]:
     """创建集成测试所需的基础目录结构与配置文件路径。"""
     base_dir = tmp_path
     watch_dir = base_dir / "watch"

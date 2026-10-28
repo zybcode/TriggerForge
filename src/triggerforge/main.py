@@ -29,6 +29,8 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
+logger = logging.getLogger(__name__)
+
 
 def main(argv=None):
     """TriggerForge 主入口。"""
@@ -38,10 +40,10 @@ def main(argv=None):
         args = parse_args(argv)
         return run_cli_logic(args)
     except KeyboardInterrupt:
-        logging.info("TriggerForge received exit signal. Shutting down...")
+        logger.info("TriggerForge received exit signal. Shutting down...")
         sys.exit(0)
     except Exception as e:
-        logging.error(f"Critical error during execution: {e}")
+        logger.error(f"Critical error during execution: {e}")
         sys.exit(1)
 
 

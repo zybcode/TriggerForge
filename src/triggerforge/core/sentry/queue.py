@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import queue
 from pathlib import Path
-from typing import List, Optional
 
 
 class EventBufferQueue:
@@ -41,7 +40,7 @@ class EventBufferQueue:
         # track enqueued items to enforce uniqueness before consumption
         self._enqueued_set: set[str] = set()
 
-    def put(self, file_path: Path, timeout: Optional[float] = None) -> bool:
+    def put(self, file_path: Path, timeout: float | None = None) -> bool:
         """
         向队列中安全地投递一个待处理的文件路径。
 
@@ -59,7 +58,7 @@ class EventBufferQueue:
         except queue.Full:
             return False
 
-    def get(self, timeout: Optional[float] = None) -> Optional[Path]:
+    def get(self, timeout: float | None = None) -> Path | None:
         """
         从队列中消费获取一个文件路径。如果队列为空，将进入阻塞状态。
 
@@ -78,7 +77,7 @@ class EventBufferQueue:
         except queue.Empty:
             return None
 
-    def get_nowait(self) -> Optional[Path]:
+    def get_nowait(self) -> Path | None:
         """Non-blocking get; returns None if empty."""
         try:
             item = self._queue.get_nowait()
@@ -110,12 +109,12 @@ class EventBufferQueue:
         """
         return self._queue.empty()
 
-    def clear(self) -> List[Path]:
+    def clear(self) -> list[Path]:
         """
         清空当前队列中所有的待处理任务并返回它们。
         常用于系统重载或紧急熔断场景。
         """
-        dropped_tasks: List[Path] = []
+        dropped_tasks: list[Path] = []
         while not self._queue.empty():
             try:
                 # 使用 block=False 防止多线程竞争下发生死锁

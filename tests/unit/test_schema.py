@@ -22,7 +22,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 from pydantic import ValidationError
@@ -31,7 +31,7 @@ from pydantic import ValidationError
 from triggerforge.core.schema import TriggerForgeConfigSchema, WatchFolderSchema
 
 
-def test_schema_valid_config(sample_config_dict: Dict[str, Any]):
+def test_schema_valid_config(sample_config_dict: dict[str, Any]):
     """
     测试合法的完整配置字典解析。
     验证数据能被正确转换为强类型对象，且所有默认值与层级结构读取正常。
@@ -63,11 +63,11 @@ def test_schema_missing_required_fields():
     """
     # 1. 缺失整个监控文件夹列表
     with pytest.raises(ValidationError) as exc_info:
-        TriggerForgeConfigSchema(**{})
+        TriggerForgeConfigSchema()
     assert "watch_folders" in str(exc_info.value)
 
     # 2. 监控文件夹配置缺失关键的监控路径 `path`
-    bad_folder_config: Dict[str, Any] = {
+    bad_folder_config: dict[str, Any] = {
         "watch_folders": [{"success_path": "./success", "error_path": "./error"}]
     }
     with pytest.raises(ValidationError) as exc_info:
@@ -75,7 +75,7 @@ def test_schema_missing_required_fields():
     assert "path" in str(exc_info.value)
 
 
-def test_schema_concurrency_validation(sample_config_dict: Dict[str, Any]):
+def test_schema_concurrency_validation(sample_config_dict: dict[str, Any]):
     """
     测试并发线程数 (concurrency) 的边界校验。
     concurrency 应该是一个大于 0 的整数。
@@ -90,7 +90,7 @@ def test_schema_concurrency_validation(sample_config_dict: Dict[str, Any]):
     assert "concurrency" in str(exc_info.value)
 
 
-def test_schema_timeout_validation(sample_config_dict: Dict[str, Any]):
+def test_schema_timeout_validation(sample_config_dict: dict[str, Any]):
     """
     测试超时时效 (timeout) 的边界校验。
     timeout 应该是一个正数或限定在有效合理的时间范围内（例如大于0）。

@@ -22,10 +22,11 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from pathlib import Path
 from queue import Queue
 from threading import Timer
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 
@@ -82,7 +83,7 @@ class SentryEventHandler(FileSystemEventHandler):
         self.dispatch_queue = dispatch_queue
         self.debouncer = debouncer
         # Optional test hook: callable invoked with a Path when events are processed
-        self._dispatch_callback: Optional[Callable[[Path], None]] = None
+        self._dispatch_callback: Callable[[Path], None] | None = None
 
     def on_created(self, event: FileSystemEvent) -> None:
         if event.is_directory:
@@ -99,12 +100,7 @@ class SentryEventHandler(FileSystemEventHandler):
         静态过滤：过滤临时文件或编辑器缓存（如 .tmp, .swp, ~ 结尾的文件）
         """
         name = path.name
-        return (
-            name.startswith(".")
-            or name.endswith(".tmp")
-            or name.endswith(".swp")
-            or name.endswith("~")
-        )
+        return name.startswith(".") or name.endswith((".tmp", ".swp", "~"))
 
     def _process_event(self, file_path: Path) -> None:
         # 1. 静态黑名单过滤
@@ -130,12 +126,12 @@ class SentryWatcher:
 
     def __init__(
         self,
-        watch_configs: Optional[List[Dict[str, Any]]] = None,
-        dispatch_queue: Optional[Queue] = None,
+        watch_configs: list[dict[str, Any]] | None = None,
+        dispatch_queue: Queue | None = None,
         # legacy/alternate constructor args used by tests
-        watch_path: Optional[Path] = None,
-        event_queue: Optional[Queue] = None,
-        debounce_seconds: Optional[float] = None,
+        watch_path: Path | None = None,
+        event_queue: Queue | None = None,
+        debounce_seconds: float | None = None,
     ):
         """
         Flexible constructor supporting either a list of `watch_configs` and

@@ -23,8 +23,9 @@ from __future__ import annotations
 
 import shutil
 import sys
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Any
 
 import pytest
 
@@ -49,7 +50,7 @@ def temp_workspace(tmp_path: Path) -> Generator[Path, None, None]:
 
 
 @pytest.fixture
-def sample_config_dict() -> Dict[str, Any]:
+def sample_config_dict() -> dict[str, Any]:
     """
     提供一套标准的、符合 Schema 校验的配置字典，用于测试 schema.py 的解析[cite: 7]。
     """

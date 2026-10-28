@@ -26,7 +26,6 @@ import fnmatch
 import re
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
 
 
 class EventFilter:
@@ -42,15 +41,15 @@ class EventFilter:
 
     def __init__(
         self,
-        whitelist_patterns: Optional[List[str]] = None,
-        blacklist_patterns: Optional[List[str]] = None,
-        regex_blacklist: Optional[List[str]] = None,
+        whitelist_patterns: list[str] | None = None,
+        blacklist_patterns: list[str] | None = None,
+        regex_blacklist: list[str] | None = None,
         deduplication_window_size: int = 1000,
         # compatibility params used by tests
-        allowed_extensions: Optional[List[str]] = None,
-        denied_extensions: Optional[List[str]] = None,
-        regex_pattern: Optional[str] = None,
-        duplicate_cooldown_seconds: Optional[float] = None,
+        allowed_extensions: list[str] | None = None,
+        denied_extensions: list[str] | None = None,
+        regex_pattern: str | None = None,
+        duplicate_cooldown_seconds: float | None = None,
     ):
         # core pattern lists
         self.whitelist_patterns = whitelist_patterns or []
@@ -66,11 +65,11 @@ class EventFilter:
 
         # time-based dedup map (path -> last_seen_timestamp)
         self.duplicate_cooldown_seconds = duplicate_cooldown_seconds
-        self._last_seen: Dict[str, float] = {}
+        self._last_seen: dict[str, float] = {}
 
         # legacy count-based window kept for compatibility but not used by tests
         self.dedup_window_size = deduplication_window_size
-        self.processed_history: List[str] = []
+        self.processed_history: list[str] = []
         self.processed_set: set[str] = set()
 
     def should_allow(self, file_path: Path) -> bool:
@@ -88,32 +87,33 @@ class EventFilter:
         ext = (file_path.suffix or "").lower()
 
         # allowed_extensions semantics: if provided, only allow those
-        if self.allowed_extensions:
-            if ext not in self.allowed_extensions:
-                return False
+        if self.allowed_extensions and ext not in self.allowed_extensions:
+            return False
 
         # denied extensions check
         if self.denied_extensions and ext in self.denied_extensions:
             return False
 
         # legacy wildcard patterns
-        if self.whitelist_patterns:
-            if not any(fnmatch.fnmatch(name, pat) for pat in self.whitelist_patterns):
-                return False
+        if self.whitelist_patterns and not any(
+            fnmatch.fnmatch(name, pat) for pat in self.whitelist_patterns
+        ):
+            return False
 
-        if self.blacklist_patterns:
-            if any(fnmatch.fnmatch(name, pat) for pat in self.blacklist_patterns):
-                return False
+        if self.blacklist_patterns and any(
+            fnmatch.fnmatch(name, pat) for pat in self.blacklist_patterns
+        ):
+            return False
 
         # regex allow pattern: if provided, only allow matches
-        if self.regex_allow:
-            if not self.regex_allow.search(name):
-                return False
+        if self.regex_allow and not self.regex_allow.search(name):
+            return False
 
         # regex blacklist
-        if self.regex_blacklist:
-            if any(p.search(str(file_path)) for p in self.regex_blacklist):
-                return False
+        if self.regex_blacklist and any(
+            p.search(str(file_path)) for p in self.regex_blacklist
+        ):
+            return False
 
         # time-based duplicate cooldown
         if self.duplicate_cooldown_seconds is not None:
@@ -127,10 +127,7 @@ class EventFilter:
 
         # legacy count-based dedup (kept for backwards compat)
         path_str = str(file_path.absolute())
-        if path_str in self.processed_set:
-            return False
-
-        return True
+        return path_str not in self.processed_set
 
     def mark_processed(self, file_path: Path) -> None:
         path_str = str(file_path.absolute())
