@@ -23,8 +23,9 @@ from __future__ import annotations
 import shutil
 import sys
 import time
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Any, Dict
 
 import pytest
 
