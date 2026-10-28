@@ -39,9 +39,9 @@ The core vision of TriggerForge is to build a modern, event-driven directory orc
 ### 1. In-Scope Deliverables
 
 * **Modern Source Layout**: Implements a clean `src/` layout matching the modern Python community's best practices, managed via a standard `pyproject.toml` configuration utilizing the Hatch build backend and PEP 621 specifications.
-* **Non-Blocking Concurrent Event Dispatching**: A decoupled workflow where the main loop (`Looper`) and the sentinel watcher (`Sentry`) collaborate with a managed thread pool (`ThreadPoolExecutor`) to dispatch filesystem events concurrently, ensuring the main ingestion stream is never blocked.
+* **Non-Blocking Concurrent Event Dispatching**: A decoupled workflow where the main loop (`Looper`) and the sentinel watcher (`Sentry`) communicate through a thread-safe buffer queue (`EventBufferQueue`) consumed by a pool of worker threads sized by `concurrency`, ensuring the main ingestion stream is never blocked.
 * **Dynamic Multi-Venv Environments**: Supports explicitly specifying a custom `python_path` inside the configuration, allowing child processes to dynamically invoke separate, fully-isolated virtual environments to seamlessly execute legacy plugins.
-* **Production-Grade Operations Lifecycle**: Provides an out-of-the-box Linux Systemd configuration for process守护 (daemonization), paired with `journald`-based log stream observability and automated binary hexdump snapshot generation for post-mortem diagnostics.
+* **Production-Grade Operations Lifecycle**: Provides an out-of-the-box Linux Systemd configuration for process守护 (daemonization), paired with `journald`-based log stream observability and automated structured `.panic.json` diagnostic reports (including full stdout/stderr) for post-mortem analysis.
 
 ### 2. Out-of-Scope Boundaries
 

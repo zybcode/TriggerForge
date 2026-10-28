@@ -21,6 +21,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict
 
 import pytest
@@ -126,3 +127,60 @@ def test_schema_default_values():
     assert (
         folder.strategies[0].python_path is None
     )  # 默认不使用隔离环境，使用系统全局 python
+
+
+def test_schema_optional_fields_have_safe_defaults():
+    """
+    验证新增可选字段的默认值：
+    plugin_directory / debounce_seconds 以及可省略的 plugin_version。
+    """
+    config = TriggerForgeConfigSchema(
+        watch_folders=[
+            {
+                "path": "./watch",
+                "success_path": "./success",
+                "error_path": "./error",
+                "strategies": [{"plugin_name": "minimal_plugin"}],
+            }
+        ]
+    )
+
+    assert config.plugin_directory == "./plugins"
+    assert config.debounce_seconds == 1.0
+
+    folder = config.watch_folders[0]
+    assert folder.debounce_seconds == 1.0
+    # plugin_version 未显式声明时应回落到占位版本，不阻断配置解析
+    assert folder.strategies[0].plugin_version == "0.0.0"
+
+
+def test_schema_debounce_must_be_positive():
+    """防抖窗口必须大于 0，否则视为非法配置。"""
+    with pytest.raises(ValidationError) as exc_info:
+        WatchFolderSchema(
+            path="./watch",
+            success_path="./success",
+            error_path="./error",
+            debounce_seconds=0,
+            strategies=[{"plugin_name": "p"}],
+        )
+
+    assert "debounce_seconds" in str(exc_info.value)
+
+
+def test_repo_sample_config_is_valid():
+    """
+    仓库自带的 config.sample.yaml / config.yaml 必须能通过 Schema 校验，
+    防止示例配置与代码实现漂移。
+    """
+    import yaml
+
+    repo_root = Path(__file__).resolve().parents[2]
+    for name in ("config.sample.yaml", "config.yaml"):
+        config_path = repo_root / name
+        assert config_path.exists(), f"missing {name}"
+        data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        config = TriggerForgeConfigSchema(**data)
+        assert config.watch_folders, f"{name} must declare at least one watch folder"
+        for folder in config.watch_folders:
+            assert folder.strategies, f"{name} strategies must not be empty"

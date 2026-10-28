@@ -1,151 +1,177 @@
+# 🔌 TriggerForge Plugin Development Specification
 
-# 🇺🇸 英文版：docs/plugin_dev.md
-
-```markdown
-# 🔌 TriggerForge Plugin Development Specification (Plugin Development Specification)
-
-> **Version**: v1.1-PRO  
-> **Status**: Approved  
-> **Scope**: Definitive lifecycle interface guide for internal developers and open-source community contributors building modular workflows.
+> **Version**: v1.1-PRO
+> **Status**: Approved
+> **Implementation**: `src/triggerforge/core/runner/plugin_runner.py`
+> **Scope**: Definitive lifecycle interface guide for internal developers and open-source contributors building modular workflows.
 
 ---
 
 ## I. Architectural Philosophy & Sandbox Constraints
 
-To maintain absolute core resilience, TriggerForge enforces a strict **Zero-Trust Plugin Model**. Every plugin registered within the execution pipeline is subjected to the following runtime guardrails:
+To maintain absolute core resilience, TriggerForge enforces a strict **Zero-Trust Plugin Model**. Every plugin registered in the execution pipeline is subject to the following runtime guardrails:
 
-1. **Subprocess Sandboxing**: Plugins are never executed inside the primary monitoring process. They are invoked as independent subprocesses, ensuring memory limits and fatal runtimes (e.g., Segfaults) are safely contained.
-2. **Defensive Timeouts**: Every plugin lifecycle is bound by a hard execution fence. If a plugin locks or blocks beyond its configured threshold, it will be forcefully terminated.
-3. **Dynamic Virtual Environments**: Plugins can explicitly target specific Python runtimes via `python_path`. This allows legacy scripts requiring older package versions to coexist seamlessly alongside modern pipelines.
-
----
-
-## II. The Base Interface (`BasePlugin`)
-
-All TriggerForge plugins must be written in Python and must inherit from the abstract base class `BasePlugin`. The engine interacts with your custom logic exclusively through this abstract contract.
-
-### 1. The Interface Definition
-Your plugin module must expose a concrete class implementing the following structure:
-
-```python
-from abc import ABC, abstractmethod
-from typing import Dict, Any, Path
-
-class BasePlugin(ABC):
-    """
-    Abstract Base Class defining the lifecycle contract for TriggerForge plugins.
-    """
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """
-        Returns the unique identifier string for the plugin.
-        Matches the 'plugin_name' specified in config.yaml.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def version(self) -> str:
-        """
-        Returns the semantic version string of the plugin (e.g., '1.0.0').
-        """
-        pass
-
-    @abstractmethod
-    def execute(self, target_file: Path, params: Dict[str, Any]) -> bool:
-        """
-        Core execution pipeline block invoked by the ForgeCore subprocess manager.
-        
-        Args:
-            target_file (Path): The absolute path to the file that triggered the event.
-            params (Dict[str, Any]): Dynamic custom parameters passed down from the YAML config.
-            
-        Returns:
-            bool: True if the processing succeeds, False if an expected failure occurs.
-        """
-        pass
-
-```
+1. **Subprocess Sandboxing**: Plugins never execute inside the primary monitoring process. They are invoked as independent subprocesses, so memory limits and fatal runtime errors (e.g. segfaults) are safely contained.
+2. **Defensive Timeouts**: Every plugin lifecycle is bound by a hard execution fence. A plugin blocking beyond its `timeout` is forcefully terminated and the file is quarantined.
+3. **Dynamic Virtual Environments**: plugins may target a specific Python runtime via `python_path`, letting legacy scripts with old dependencies coexist with modern pipelines.
+4. **Short-Circuit**: `strategies` for a directory run sequentially; the first failure skips all remaining strategies.
 
 ---
 
-## III. Step-by-Step Plugin Implementation
+## II. Plugin Layout & Entrypoint Convention
 
-To write and register a new plugin named `compress_plugin`, follow this strict structural layout:
-
-### 1. Directory Blueprint
-
-Create your plugin module under the standard layout `src/triggerforge/plugins/`:
+Plugins are stored in a **flat directory layout**, one directory per plugin:
 
 ```plaintext
-src/triggerforge/plugins/
-├── __init__.py
-└── compress_plugin/
-    ├── __init__.py
-    └── main.py          # Concrete implementation resides here
-
+{plugin_directory}/           # configured via plugin_directory, default ./plugins
+└── my_plugin/                # directory name must equal plugin_name in the strategy
+    └── main.py               # entrypoint (alternatives: plugin.py, index.py)
 ```
 
-### 2. Writing the Concrete Logic (`main.py`)
+The engine resolves the entrypoint in the order `main.py` → `plugin.py` → `index.py`; if none exists the strategy is considered failed.
 
-Implement the interface, handling all long-running behaviors gracefully:
+---
+
+## III. Execution Contract (Process-Level Interface)
+
+Plugins are **not** wired in via class inheritance. The engine launches your plugin as an executable Python script with this command line:
+
+```bash
+{interpreter} {plugin_main.py} {target_file} ["{json_params}"]
+```
+
+### 1. Input Channels
+
+| Channel | Content | Notes |
+| :--- | :--- | :--- |
+| `sys.argv[1]` | **Absolute path** of the target file | Always provided; the file dropped into the watched directory. |
+| `sys.argv[2]` | JSON string of the strategy `params` | Only passed when `params` is non-empty. |
+| Env var `TRIGGERFORGE_PARAMS` | JSON string of the strategy `params` | Only set when `params` is non-empty; convenient for plugins that do not parse argv. |
+| Working directory | The engine's current working directory | Never assume cwd is the watched directory; use the absolute path from `argv[1]`. |
+
+### 2. Output Contract
+
+A plugin must write **exactly one JSON object to stdout** describing the outcome:
+
+```json
+{"status": "success", "message": "processed 42 rows"}
+```
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `status` | `str` | Yes | `"success"` means success; any other value is treated as failure. |
+| other fields | any | No | Preserved verbatim in the engine result for auditing/logging (e.g. `message`, `rows`). |
+
+> ⚠️ **Important**: any extra stdout output that is not part of the JSON object makes parsing fail and the plugin is marked failed. Send debug output to **stderr** — the engine records it in the `.panic.json` diagnostic report.
+
+### 3. Exit Codes & Failure Semantics
+
+| Scenario | Engine behavior |
+| :--- | :--- |
+| Exit `0`, stdout is valid JSON, `status == "success"` | Success; continue with the next strategy. All success → archive to `success_path` |
+| Non-zero exit code | Failure; stderr is captured as the error summary |
+| Exit `0` but stdout is not valid JSON | Failure ("plugin did not output valid JSON") |
+| Runtime exceeds `timeout` seconds | Subprocess killed; failure |
+| Uncaught exception | Process exits non-zero; failure |
+
+On the first failure the engine will:
+1. write `panic_{plugin_name}_{timestamp}.json` into `log_dir` (default `logs/`);
+2. move the source file into the watch folder's configured `error_path`.
+
+---
+
+## IV. Reference Implementation
+
+### 1. Minimal Plugin
 
 ```python
-import os
-import tarfile
+# plugins/my_plugin/main.py
+import json
+import sys
 from pathlib import Path
-from typing import Dict, Any
-from triggerforge.plugins.base import BasePlugin
 
-class CompressPlugin(BasePlugin):
-    
-    @property
-    def name(self) -> str:
-        return "compress_plugin"
+def main() -> int:
+    target = Path(sys.argv[1])
 
-    @property
-    def version(self) -> str:
-        return "1.0.0"
+    # Optional: read strategy params
+    params = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {}
 
-    def execute(self, target_file: Path, params: Dict[str, Any]) -> bool:
-        """
-        Compresses the incoming file into a standard tar.gz payload.
-        """
-        # 1. Extract dynamic configuration parameters safely
-        compression_level = params.get("level", "high")
-        
-        print(f"[Info] Initializing compression on {target_file.name} (Level: {compression_level})")
-        
-        if not target_file.exists():
-            print(f"[Error] Target file missing: {target_file}")
-            return False
-            
-        try:
-            # 2. Execute business processing logic
-            output_archive = target_file.with_suffix(".tar.gz")
-            with tarfile.open(output_archive, "w:gz") as tar:
-                tar.add(target_file, arcname=target_file.name)
-                
-            print(f"[Success] Successfully archived payload to {output_archive.name}")
-            return True
-            
-        except Exception as e:
-            # 3. Standard error output streams will be automatically grabbed by the Clerk layer
-            print(f"[Exception] Compression failure sequence encountered: {str(e)}")
-            return False
+    # Your processing logic (example: count bytes)
+    size = target.stat().st_size
 
+    # Must emit a single JSON object on stdout
+    print(json.dumps({
+        "status": "success",
+        "file": target.name,
+        "size_bytes": size,
+        "mode": params.get("mode", "default"),
+    }))
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+### 2. Matching Strategy Configuration
+
+```yaml
+plugin_directory: "./plugins"
+
+watch_folders:
+  - path: "./storage/watch_folder"
+    success_path: "./storage/success_folder"
+    error_path: "./storage/error_folder"
+    concurrency: 2
+    debounce_seconds: 1.0
+    strategies:
+      - plugin_name: "my_plugin"     # maps to plugins/my_plugin/main.py
+        plugin_version: "1.0.0"
+        timeout: 15
+        params:
+          mode: "strict"
+```
+
+### 3. Failure Reporting Example
+
+```python
+import json
+import sys
+
+def main() -> int:
+    try:
+        # ... business logic ...
+        raise ValueError("malformed input")
+    except Exception as exc:
+        # Failures must also emit JSON so the engine can record a summary
+        print(json.dumps({"status": "failed", "error": str(exc)}))
+        print(f"traceback details: {exc}", file=sys.stderr)   # details go to stderr
+        return 1
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 ```
 
 ---
 
-## IV. Defensive Coding Guidelines for Plugin Developers
+## V. Defensive Coding Guidelines
 
-To ensure your code integrates flawlessly with the TriggerForge execution matrix, abide by these standard practices:
+* **Use standard streams only**: do not build custom logging backends inside the plugin. The engine captures `stdout`/`stderr` from the child process and forwards them to the Clerk layer.
+* **Idempotency matters**: in high-throughput directory routing a file event may fire more than once. Make processing safe to repeat on the same file.
+* **Anchor exceptions**: wrap inner logic in `try/except`. Report failures as a JSON object with a non-success `status` (and a non-zero exit code) so the file is quarantined instead of silently lost.
+* **Never mutate the source path**: read from `argv[1]`; the engine owns archiving (moving the file into the success/error zone).
 
-* **Leverage Standard Outputs**: Do not implement specialized custom file logging backends inside your plugin. Use standard `print()` statements or direct `sys.stdout`/`sys.stderr` streams. TriggerForge captures these streams from the child process and passes them to the **Clerk layer** to populate the operational `journald` logs.
-* **Idempotency is Non-Negotiable**: In high-throughput directory routing, a file event might fire multiple times under specialized edge cases. Ensure your `execute()` logic is safe to run multiple times against the same file without corrupting states or duplicating database entries.
-* **Graceful Exception Anchoring**: Always wrap your inner logic loops inside an exhaustive `try/except` block. Unhandled critical failures (e.g., unexpected library exceptions) should be caught, logged to standard error, and resolved by returning `False` so the Clerk can seamlessly move the target file into the designated `error_path` quarantine.
+---
 
+## VI. Plugin Self-Test Checklist
+
+Before wiring a plugin into the pipeline, verify it manually in its directory:
+
+```bash
+# 1. Invoke it exactly as the engine would
+python main.py /absolute/path/to/sample.txt '{"mode": "strict"}'
+
+# 2. Confirm stdout is a single valid JSON object with status == "success"
+# 3. Confirm the exit code is 0 (bash: echo $? / PowerShell: $LASTEXITCODE)
 ```
+
+If the plugin needs its own dependency set, point `python_path` in the strategy at that virtualenv's interpreter. When the path is invalid the engine logs a warning and falls back to the current interpreter.

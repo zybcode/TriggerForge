@@ -15,25 +15,26 @@ TriggerForge implements a strictly decoupled **four-layer isolation architecture
 
 ```plaintext
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Looper (Main Loop)                       │
+│                 Looper (Main Loop / Orchestrator)               │
+│   load config → per folder: Watcher + Queue + Worker Threads     │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Sentry (Sentinel Watcher)                    │
-│          Watchdog Poller  →  ThreadPoolExecutor (Concur)       │
+│                   Sentry (Sentinel Watcher Layer)                │
+│   Watchdog events → temp filter → debounce Timer → enqueue       │
+└──────────────────────────────┬──────────────────────────────────┘
+                               │  EventBufferQueue (thread-safe)
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  ForgeCore (Execution Engine Layer)              │
+│   workers consume queue → sequential strategies → subprocess     │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    ForgeCore (Execution Engine)                 │
-│         Spawns Isolated Subprocesses per Plugin (Sandbox)       │
-└──────────────────────────────┬──────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      Clerk (Output Manager)                     │
-│         Archiving + Hexdump Snapshots + Diagnostic Logs         │
+│                    Clerk (Output Manager Layer)                  │
+│   success → success_path / failure → error_path + .panic.json    │
 └─────────────────────────────────────────────────────────────────┘
 
 ```
@@ -45,24 +46,28 @@ TriggerForge implements a strictly decoupled **four-layer isolation architecture
 ### 1. Looper (Main Loop Layer)
 
 * **Responsibilities**: Serves as the outermost long-running daemon process of the system. It handles the entire lifecycle of the TriggerForge engine, including initialization, configuration loading, graceful shutdown sequencing, and global OS signal handling.
+* **Orchestration**: For every watched directory it instantiates a `SentryWatcher` plus an `EventBufferQueue`, then spawns `concurrency` worker threads that consume the queue and drive the full "run plugins → archive" pipeline.
 * **Self-Healing Mechanics**: Ensures zero configuration loss during catastrophic unexpected global errors, maintaining the capacity to dynamically reboot downstream layers.
 
 ### 2. Sentry (Sentinel Watcher Layer)
 
-* **Responsibilities**: Acts as the center for high-concurrency event ingestion and dispatching.
+* **Responsibilities**: Filesystem event ingestion, static filtering, and write debouncing.
 * **Technical Implementation**:
-* **Watchdog Poller**: Utilizes a non-blocking, reliable mechanism to monitor configured directories for real-time filesystem events.
-* **ThreadPoolExecutor**: Upon capturing a file event, Sentry offloads the event payload immediately into an internal thread pool instead of executing business logic on the main thread. This prevents the main loop from blocking due to slow disk I/O operations and maintains low latency response times.
+* **Watchdog Poller**: Listens for real-time filesystem events (`on_created` / `on_modified`) on the configured directories.
+* **Static Filtering**: Drops temp/editor artifacts (`.tmp`, `.swp`, trailing `~`, dotfiles) before they reach the pipeline.
+* **Write Debouncing**: A per-path `Timer` is cancelled and rescheduled for repeated events inside the `debounce_seconds` window, guaranteeing downstream plugins only see fully written files.
+* **Buffered Handoff**: Once the debounce window expires, the path is enqueued into the thread-safe `EventBufferQueue`, decoupling ingestion from execution and absorbing bursts.
 
 
 
 ### 3. ForgeCore (Execution Engine Layer)
 
 * **Responsibilities**: Host environment and execution pipeline coordinator for plugins.
+* **Execution Flow**: worker threads pull a path from `EventBufferQueue` and run `strategies` **sequentially**; the first failure short-circuits the remaining strategies.
 * **Subprocess Sandbox Isolation**:
-* **Hard Process Isolation**: ForgeCore strictly prohibits executing third-party plugin code within the main process or the thread pool. For every triggered plugin task, ForgeCore spawns a **completely independent subprocess** via `runner.py`.
+* **Hard Process Isolation**: ForgeCore strictly prohibits executing third-party plugin code within the main process or worker threads. For every strategy it spawns a **completely independent subprocess** via `PluginRunner`, invoked as `main.py <file_path> <json_params>`.
 * **Fault and Crash Isolation**: Plugin child processes possess their own isolated memory space and are bounded by hard execution timeout fences. If a plugin suffers a memory leak, enters an infinite loop, or encounters a sudden segmentation fault (Segfault), only that specific subprocess is impacted. ForgeCore safely destroys the corrupted child process, reclaims system resources, and leaves the core engine 100% unaffected.
-* **Multi-Version Virtual Environment Support**: Supports explicitly defining a custom `python_path` in the configuration. This allows child processes to dynamically invoke separate, fully-isolated Python virtual environments (Venvs), seamlessly solving dependency conflicts between legacy and modern plugins.
+* **Multi-Version Virtual Environment Support**: Supports explicitly defining a custom `python_path` in the configuration. This allows child processes to dynamically invoke separate, fully-isolated Python virtual environments (Venvs), seamlessly solving dependency conflicts between legacy and modern plugins. Invalid paths fall back to the current interpreter with a warning.
 
 
 
@@ -70,8 +75,8 @@ TriggerForge implements a strictly decoupled **four-layer isolation architecture
 
 * **Responsibilities**: Manages the post-execution cleanup, file lifecycle tracking, and state materialization.
 * **Asset & Diagnostics Routing**:
-* **Pipeline Archiving**: Automatically moves processed files to either `success_path` (Success Archive) or `error_path` (Error Archive) based on the exact exit status returned by the plugin subprocess.
-* **Diagnostic Snapshots (Hexdump)**：When a plugin fails or throws an exception, Clerk automatically captures a binary Hexdump snapshot of the problematic file context. This raw payload is written directly to the diagnostic logs along with the captured `stderr` stream, providing immediate, zero-consultation troubleshooting evidence for SRE and operations teams.
+* **Pipeline Archiving**: Automatically moves processed files to either `success_path` (Success Archive) or `error_path` (Error Archive) based on the exact status returned by the plugin subprocess, with directory self-healing and timestamp-based collision avoidance.
+* **Panic Dumps**: When a plugin fails, times out, or crashes, Clerk writes a structured `panic_{plugin}_{timestamp}.json` containing target file metadata, the failing plugin and strategy params, environment context, and the captured `stdout` / `stderr` streams — providing immediate, zero-consultation troubleshooting evidence for SRE teams.
 
 
 

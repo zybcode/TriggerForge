@@ -83,11 +83,14 @@ journalctl -u triggerforge.service -f -n 100
 
 ### 2. Failure Snapshot Diagnostics
 
-When a third-party plugin hits a timeout wall or encounters an unhandled segmentation fault (Segfault), the Clerk module flushes the failure context alongside a binary Hexdump snapshot directly into the error stream. Use the following filter to quickly pinpoint failures:
+When a third-party plugin hits a timeout wall, returns a failed status, or encounters an unhandled segmentation fault (Segfault), the Clerk module writes a structured `panic_{plugin_name}_{timestamp}.json` report into `log_dir` (default `logs/`). It contains target file metadata, the failing plugin and strategy params, environment context, and the full captured `stdout` / `stderr`. Use the following commands to pinpoint failures quickly:
 
 ```bash
+# Inspect recent error-level logs (includes panic report paths)
 journalctl -u triggerforge.service --priority=err -n 50
 
+# Open the most recent panic report
+ls -t logs/panic_*.json | head -1 | xargs -r cat
 ```
 
 ---

@@ -47,3 +47,20 @@ def test_watcher_ignores_directory_events(temp_workspace):
     with patch.object(watcher, "_dispatch_debounced_event") as mock_dispatch:
         watcher.event_handler.on_created(event)
         mock_dispatch.assert_not_called()
+
+
+def test_watcher_creates_default_queue_when_none_provided(temp_workspace):
+    """未显式传入 dispatch_queue 时应自动创建内部队列，避免事件静默丢失。"""
+    watcher = SentryWatcher(watch_configs=[{"path": str(temp_workspace)}])
+
+    assert watcher.dispatch_queue is not None
+    assert watcher.event_handler.dispatch_queue is watcher.dispatch_queue
+
+
+def test_watcher_reads_debounce_seconds_from_config(temp_workspace):
+    """构造参数缺省时，防抖窗口应回落到监控目录配置中的 debounce_seconds。"""
+    watcher = SentryWatcher(
+        watch_configs=[{"path": str(temp_workspace), "debounce_seconds": 2.5}]
+    )
+
+    assert watcher.debounce_seconds == 2.5

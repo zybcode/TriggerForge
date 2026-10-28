@@ -149,11 +149,19 @@ class SentryWatcher:
             dispatch_queue = event_queue
 
         self.watch_configs = watch_configs or []
+
+        # 若上层未提供分发队列，则退化为内部队列，确保事件不会静默丢失
+        if dispatch_queue is None:
+            dispatch_queue = Queue()
+
         self.dispatch_queue = dispatch_queue
         # compatibility aliases expected by tests
         self.watch_path = Path(watch_path) if watch_path is not None else None
         self.event_queue = dispatch_queue
-        self.debounce_seconds = debounce_seconds or 1.0
+        # 防抖秒数：优先取构造参数，其次取首个监听目录配置中的 debounce_seconds
+        if debounce_seconds is None and self.watch_configs:
+            debounce_seconds = self.watch_configs[0].get("debounce_seconds")
+        self.debounce_seconds = float(debounce_seconds) if debounce_seconds else 1.0
         self.observer = Observer()
         # allow customizing debouncer delay via debounce_seconds
         self.debouncer = FileWriteDebouncer(delay_seconds=self.debounce_seconds)
@@ -161,10 +169,7 @@ class SentryWatcher:
         # debounce timers per path
         self._debounce_timers: dict[str, Timer] = {}
         # expose an event handler instance for tests to invoke directly
-        handler_queue = (
-            self.dispatch_queue if self.dispatch_queue is not None else Queue()
-        )
-        self.event_handler = SentryEventHandler(handler_queue, self.debouncer)
+        self.event_handler = SentryEventHandler(self.dispatch_queue, self.debouncer)
         # Register a dynamic wrapper so that if tests patch
         # `self._dispatch_debounced_event`, the handler will invoke the patched
         # function.
