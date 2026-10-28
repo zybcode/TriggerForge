@@ -86,7 +86,9 @@ TriggerForge implements a strictly decoupled **four-layer isolation architecture
 
 ### 1. Architecture as Code
 
-Static documentation inevitably degrades and drifts as code iterates. Manual modifications to configuration documentation are strictly forbidden in TriggerForge. All system metadata (such as `watch_folders`, `concurrency`, `strategies`, etc.) must be declared programmatically via **Python Type Hints + Pydantic Schemas** inside `src/triggerforge/core/schema.py`. Running `scripts/generate_docs.py` automatically extracts these fields, ensuring `docs/configuration.md` is always up to date.
+Static documentation inevitably degrades and drifts as code iterates. TriggerForge declares all system metadata (such as `watch_folders`, `concurrency`, `strategies`, etc.) programmatically via **Python Type Hints + Pydantic Schemas** inside `src/triggerforge/core/schema.py`, which is the **single source of truth** for configuration fields.
+
+The companion `docs/zh/configuration.md` and `docs/en/configuration.md` must stay in sync with the schema: update the field tables whenever a field is added or changed. The guard test `tests/unit/test_schema.py::test_repo_sample_config_is_valid` additionally ensures `config.yaml` and `config.sample.yaml` always validate against the schema, preventing config/implementation drift.
 
 ### 2. Modern Python Source Layout (`src/` Layout)
 

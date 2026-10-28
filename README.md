@@ -76,6 +76,8 @@ python -m pytest -s
 
 ```
 
+> 💡 **不使用 Hatch？** 也可以直接：`python -m pip install -e . && python -m pip install pytest pytest-cov`，然后运行 `python -m pytest`。注意保证**运行 pytest 的解释器**与**安装依赖的解释器**是同一个，否则测试会在收集阶段报 `ModuleNotFoundError`。详见 [环境搭建指南](docs/zh/setup.md)。
+
 ## 🤝 贡献与合规 (Contributing)
 
 我们非常欢迎社区贡献！为了确保项目的合规性，请遵循以下流程：
@@ -158,6 +160,8 @@ We prioritize both functionality and test stability. Our test suite includes an 
 python -m pytest -s
 
 ```
+
+> 💡 **Not using Hatch?** Simply run `python -m pip install -e . && python -m pip install pytest pytest-cov`, then `python -m pytest`. Make sure the **interpreter running pytest** is the same one where the dependencies are installed, or collection fails with `ModuleNotFoundError`s. See the [Setup Guide](docs/en/setup.md) for details.
 
 ## 🤝 Contributing
 

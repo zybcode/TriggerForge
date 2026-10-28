@@ -13,17 +13,21 @@
 
 Before setting up your local environment, ensure your development machine has the following infrastructure installed and configured:
 
-* **Python Runtime**: **Python 3.10, 3.11, or 3.12** is highly recommended.
-* **Build System (Hatch)**: TriggerForge abandons traditional `setup.py` scripts and fully embraces the PEP 621 standard, using **Hatch** as its modern packaging and environment management backend.
+* **Python Runtime**: **Python 3.11 or newer** is required (matching `requires-python = ">=3.11"` in `pyproject.toml`).
+* **Build System (Hatch, optional)**: TriggerForge abandons traditional `setup.py` scripts and fully embraces the PEP 621 standard, using **Hatch** as its modern packaging and environment management backend. Hatch is optional — plain `pip` works for all development tasks (see Option B below).
 * **Operating System**: Fully compatible with Linux (recommended for production), macOS, and Windows.
 
 ---
 
 ## II. Rapid Local Environment Initialization
 
-All project dependencies, build metadata, and virtual environment management configurations are declared inside `pyproject.toml` in the project root. You can spin up a fully isolated development environment in three steps:
+Pick one of the two options below. **Either way, install the dependencies before running the tests**, otherwise pytest fails during collection with a batch of `ModuleNotFoundError`s (import errors, not test failures).
 
-### 1. Clone the Repository and Enter the Project Root
+### Option A: Hatch-Managed Environment (Recommended)
+
+All project dependencies, build metadata, and virtual environment management configurations are declared inside `pyproject.toml` in the project root.
+
+#### 1. Clone the Repository and Enter the Project Root
 
 ```bash
 git clone https://github.com/zybcode/TriggerForge.git
@@ -31,7 +35,7 @@ cd TriggerForge
 
 ```
 
-### 2. Install Hatch (If Not Already Installed)
+#### 2. Install Hatch (If Not Already Installed)
 
 Hatch serves as both a build utility and an exceptional virtual environment manager. You can install it globally via `pip` or your system's package manager:
 
@@ -40,7 +44,7 @@ pip install --user hatch
 
 ```
 
-### 3. Synchronize Environment and Install Dependencies
+#### 3. Synchronize Environment and Install Dependencies
 
 Run the following command to let Hatch automatically spin up an isolated virtual environment and install the package along with all development and testing dependencies in **Editable Mode**:
 
@@ -50,23 +54,42 @@ hatch env create
 
 ```
 
+### Option B: Minimal pip Environment
+
+No Hatch required — install the project and test tools into your current interpreter (global or virtualenv) directly:
+
+```bash
+# 1. Install the project in editable mode (pulls in watchdog / pydantic / pyyaml)
+python -m pip install -e .
+
+# 2. Install the test tooling
+python -m pip install pytest pytest-cov
+
+# 3. Run the suite from the project root
+python -m pytest
+```
+
+> 💡 **Common pitfall**: if the interpreter behind your `pytest` command differs from the one where the dependencies were installed (e.g. `pytest.exe` lives in Python 3.12's `Scripts/` while the deps landed in another Python), you get mass `ModuleNotFoundError`s during collection. Verify with `pytest --version` and `where pytest` / `where python` that both sides point to the same environment.
+
 ---
 
 ## III. Core Local Development Commands
 
-When managing environments with Hatch, you never need to manually run activation commands like `source venv/bin/activate`. Hatch provides an elegant command orchestration interface instead:
-
-### 1. Executing the Test Suite (Deterministic Testing Pipeline)
-
-TriggerForge's test suite bypasses unpredictable disk I/O hooks via in-memory mock queues. Running tests locally is extremely fast and stable:
+### 1. Executing the Test Suite
 
 ```bash
-# Run pytest with code coverage tracking within the isolated virtual environment
+# Option A (Hatch): run pytest with coverage inside the managed environment
 hatch run cov
 
+# Option B (pip): run directly from the project root
+python -m pytest
+
+# Unit tests only / integration tests only
+python -m pytest tests/unit
+python -m pytest tests/integration
 ```
 
-*(Note: Behind the scenes, this executes `pytest --cov=triggerforge tests/` and prints out a coverage breakdown).*
+The current suite contains 47 tests (38 unit + 9 integration) and completes in roughly 10–25 seconds.
 
 ### 2. Running Arbitrary Commands Within the Virtual Environment
 
@@ -101,23 +124,31 @@ Before developing and committing code, make sure you are familiar with our stand
 ```plaintext
 TriggerForge/
 ├── pyproject.toml           # Unified project config file complying with PEP 621 specifications
-├── README.md                # Open-source landing page & dual-licensing business declaration
+├── config.yaml              # Runtime config (watched folders & plugin strategies)
+├── config.sample.yaml       # Production-grade configuration sample
+├── mkdocs.yml               # Docs site navigation config
+├── README.md                # Open-source landing page & quick start
 ├── LICENSE                  # Open-source GNU GPL v3 license text
+├── docs/                    # Bilingual documentation site (mkdocs-material)
 ├── src/                     # Clean source code repository
-│   └── triggerforge/        # Core package root
+│   └── triggerforge/
 │       ├── main.py          # Engine daemon startup entry point
-│       ├── core/            # Core system layers (Looper, Sentry, ForgeCore, Clerk)
-│       │   └── schema.py    # Pydantic configuration schemas (Source of truth for "Architecture as Code")
-│       └── plugins/         # Extensible plugin system path
-│           └── base.py      # Abstract BaseClass (BasePlugin) that all plugins must inherit
-├── tests/                   # 100% stable integration test suite
-│   ├── conftest.py          # In-memory mock queue configuration
-│   └── test_core.py         # Core process isolation and scheduling tests
-└── scripts/
-    └── generate_docs.py     # Automated configuration document extraction script
+│       ├── cli.py           # CLI entrypoint (--config / --dry-run / --version)
+│       ├── core/
+│       │   ├── looper.py    # Orchestrator: queue + worker threads + pipeline wiring
+│       │   ├── schema.py    # Pydantic config schemas (single source of truth)
+│       │   ├── runner/      # ForgeCore: PluginRunner subprocess sandbox
+│       │   ├── sentry/      # Sentry: watcher / queue / filter
+│       │   └── clerk/       # Clerk: archiver (file zones) / journal (panic reports)
+│       └── plugins/
+│           └── base.py      # Optional plugin abstract base class (see plugin_dev.md)
+└── tests/
+    ├── conftest.py          # Shared fixtures & src path injection
+    ├── unit/                # 38 unit tests
+    └── integration/         # 9 integration tests (incl. real-watchdog e2e)
 
 ```
 
 ---
 
-> ⚖️ **Important**: To prevent dependency conflicts within sandboxed child processes, never use global `pip install` commands to force-install packages. Any dependency additions or modifications must be declared inside the `[project.dependencies]` or `[tool.hatch.envs.default]` blocks in `pyproject.toml`, followed by running `hatch env prune && hatch env create` to cleanly rebuild the workspace.
+> ⚖️ **Important**: To prevent dependency conflicts within sandboxed child processes, always declare dependencies in the `[project.dependencies]` or `[tool.hatch.envs.default]` blocks of `pyproject.toml` and sync from there. For everyday local development, Option B's `pip install -e .` is also a supported path; the key requirement is that **the interpreter running pytest is the same one where the dependencies are installed**.

@@ -87,7 +87,9 @@ TriggerForge 采用严格解耦的**四层隔离架构模型**，以确保系统
 
 ### 1. 架构即代码 (Architecture as Code)
 
-静态文档极易随着代码迭代而失效。TriggerForge 严禁手动修改配置说明文档。所有系统配置（如 `watch_folders`、`concurrency`、`strategies` 等）的元数据必须在 `src/triggerforge/core/schema.py` 中通过 **Python 类型系统 + Pydantic Schema** 进行自描述声明。通过运行 `scripts/generate_docs.py` 自动化抽取 Schema，实现 `docs/configuration.md` 的自动更新。
+静态文档极易随着代码迭代而失效。TriggerForge 将所有系统配置（如 `watch_folders`、`concurrency`、`strategies` 等）的元数据在 `src/triggerforge/core/schema.py` 中通过 **Python 类型系统 + Pydantic Schema** 进行自描述声明，`schema.py` 是配置字段的**唯一定义处**。
+
+配套的 `docs/zh/configuration.md` 与 `docs/en/configuration.md` 必须与 Schema 保持同步：新增或修改字段后，请同步更新文档中的字段表格；仓库同时提供 `tests/unit/test_schema.py::test_repo_sample_config_is_valid` 守卫测试，确保 `config.yaml` 与 `config.sample.yaml` 始终能通过 Schema 校验，防止配置与实现漂移。
 
 ### 2. 现代 Python 源码布局 (Src Layout)
 
